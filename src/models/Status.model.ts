@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document, model } from "mongoose";
-import { IClients } from "./Clients.model";
 import { string } from "joi";
 import { userSchema } from "./User.model";
 
@@ -19,7 +18,7 @@ const statusSchema: Schema = new Schema(
     },
   },
 
-  { timestamps: true }
+  { versionKey: false, timestamps: true }
 );
 
 export const Status = model("Status", statusSchema);

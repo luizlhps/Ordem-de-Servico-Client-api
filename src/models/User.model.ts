@@ -12,7 +12,7 @@ export const userSchema = new Schema<IUser>(
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
   },
-  { timestamps: true }
+  { versionKey: false, timestamps: true }
 );
 
 export const User = model("User", userSchema);
