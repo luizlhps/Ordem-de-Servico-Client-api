@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start:dev": "nodemon --exec npx ts-node src/index.ts"
+    "debug": "nodemon --exec \"node --inspect --require ts-node/register src/index.ts\""
   },
   "keywords": [],
   "author": "",
@@ -18,7 +18,8 @@
     "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.1.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const connectDatabase = async () => {
-  const url: string = "mongodb://127.0.0.1:27017/ordemDeServico";
+  const url: string = "mongodb+srv://admin:admin@cursonodejs.31lneyh.mongodb.net/test";
 
   try {
     await mongoose.connect(url, {});
