@@ -3,14 +3,9 @@ import { model, Schema } from "mongoose";
 export const Balance = model(
   "Balance",
   new Schema({
-    balance: {
+    amount: {
       type: Number,
       default: 0,
-    },
-    user_id: {
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "User",
     },
   })
 );
@@ -22,8 +17,9 @@ export const Transaction = model(
       title: { type: String, required: true },
       description: { type: String, required: true },
       amount: { type: Number, required: true },
-      type: { type: String, required: true },
+      type: { type: String, enum: ["credit", "debit"], required: true },
       status: { type: String, required: true },
+      order: { type: Schema.Types.ObjectId, ref: "Order" },
       entryDate: { type: Date, required: true },
       exitDate: { type: Date },
     },

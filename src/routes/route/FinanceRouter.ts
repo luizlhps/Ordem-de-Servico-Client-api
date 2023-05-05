@@ -1,8 +1,9 @@
 import Express from "express";
-import { userControler } from "../../controllers/userController";
-import { AuthenticatedRequest, auth } from "../../controllers/authController";
+import { finance } from "../../controllers/financeController";
+
 export const financeRouter = Express.Router();
 
-financeRouter.get("/", async (req, res) => {
-  res.send("So pode ser visto pelo adm");
-});
+financeRouter.post("/", finance.createtransaction);
+financeRouter.put("/:id", finance.updatetransaction);
+financeRouter.delete("/:id", finance.deletetransaction);
+financeRouter.get("/", finance.getAlltransaction);
