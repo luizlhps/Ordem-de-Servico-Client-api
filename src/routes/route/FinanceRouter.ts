@@ -3,7 +3,9 @@ import { finance } from "../../controllers/financeController";
 
 export const financeRouter = Express.Router();
 
-financeRouter.post("/", finance.createtransaction);
-financeRouter.put("/:id", finance.updatetransaction);
-financeRouter.delete("/:id", finance.deletetransaction);
-financeRouter.get("/", finance.getAlltransaction);
+financeRouter.post("/", finance.createTransaction);
+financeRouter.put("/:id", finance.updateTransaction);
+financeRouter.delete("/:id", finance.deleteTransaction);
+
+financeRouter.get("/search", finance.searchTransaction);
+financeRouter.get("/:id", finance.searchTransaction);

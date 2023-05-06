@@ -6,6 +6,7 @@ import {
   adminRouter,
   customerRouter,
   financeRouter,
+  serviceRouter,
   statusRouter,
   userRouter,
 } from "./routes/";
@@ -23,5 +24,6 @@ app.use("/admin", adminRouter);
 app.use("/finance", financeRouter);
 app.use("/status", statusRouter);
 app.use("/a", customerRouter);
+app.use("/service", serviceRouter);
 
 app.listen(port, () => console.log("Porta usada:", port));

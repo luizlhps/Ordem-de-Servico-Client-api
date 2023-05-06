@@ -2,7 +2,7 @@ import { Balance, Transaction } from "../models/Finance.model";
 import { Request, Response } from "express";
 
 class Finance {
-  async createtransaction(req: Request, res: Response) {
+  async createTransaction(req: Request, res: Response) {
     const { title, description, amount, type, status, order, entryDate, exitDate } = req.body;
 
     try {
@@ -34,7 +34,7 @@ class Finance {
 
       //caso debito é negativo
       let value = amount;
-      if (type === "debit") value = value * -1;
+      if (type === "debit" && status === "finished") value = value * -1;
       if (status === "finished") balance.amount = balance.amount + value; //se a transação for do tipo credito e no caso ele não esteja com status finished eu não quero que ele seja contato no caixa
 
       await balance.save();
@@ -45,7 +45,7 @@ class Finance {
     }
   }
 
-  async updatetransaction(req: Request, res: Response) {
+  async updateTransaction(req: Request, res: Response) {
     const { title, description, amount, type, status, order, entryDate, exitDate } = req.body;
     try {
       const checktransactionExists = await Transaction.findById(req.params.id);
@@ -55,35 +55,84 @@ class Finance {
 
       //atualiza o balance caso o status seja finalizad e que o tipo seja credito
 
-      const amounttransaction = checktransactionExists;
+      const amountTransaction = checktransactionExists;
       const oldAmount = checktransactionExists.amount;
+      const oldType = checktransactionExists.type;
       const newAmount = amount;
+      const newType = type;
       let balance = await Balance.findOne();
       if (balance) {
+        //credito
         if (
+          oldType === newType &&
           status === "finished" &&
           type === "credit" &&
-          amounttransaction.status !== "finished"
+          amountTransaction.status !== "finished"
         ) {
           balance.amount = balance.amount + oldAmount;
           await balance.save();
+        } else if (status === "finished" && type === "credit" && oldType === newType) {
+          if (oldAmount < newAmount) {
+            balance.amount = balance.amount + newAmount - oldAmount;
+            await balance.save();
+          }
+
+          if (oldAmount > newAmount && newAmount !== 0) {
+            balance.amount = balance.amount - (oldAmount - newAmount);
+            await balance.save();
+          }
+          if (newAmount === 0) {
+            balance.amount = balance.amount - oldAmount;
+            await balance.save();
+          }
         }
 
-        if (oldAmount < newAmount) {
-          balance.amount = balance.amount + newAmount - oldAmount;
+        //debito
+        if (
+          oldType === newType &&
+          status === "finished" &&
+          type === "debit" &&
+          amountTransaction.status !== "finished"
+        ) {
+          balance.amount = balance.amount + oldAmount * -1;
           await balance.save();
+        } else if (status === "finished" && type === "debit" && oldType === newType) {
+          if (oldAmount < newAmount) {
+            balance.amount = balance.amount - (newAmount - oldAmount);
+            await balance.save();
+          }
+
+          if (oldAmount > newAmount && newAmount !== 0) {
+            balance.amount = balance.amount - (oldAmount - newAmount);
+            await balance.save();
+          }
+          if (newAmount === 0) {
+            balance.amount = balance.amount + oldAmount;
+            await balance.save();
+          }
         }
 
-        if (oldAmount > newAmount && newAmount !== 0) {
-          balance.amount = balance.amount - (oldAmount - newAmount);
+        if (oldType === "credit" && newType === "debit") {
+          console.log("debito");
+          console.log(balance.amount);
+          if (balance.amount < 0) {
+            balance.amount = balance.amount + oldAmount * -2;
+          } else {
+            newAmount < oldAmount
+              ? (balance.amount = balance.amount - newAmount)
+              : (balance.amount = balance.amount - newAmount - oldAmount);
+          }
           await balance.save();
         }
-        if (newAmount === 0) {
-          balance.amount = balance.amount - oldAmount;
+        if (oldType === "debit" && newType === "credit") {
+          console.log("opa");
+          newAmount
+            ? (balance.amount = balance.amount + newAmount)
+            : (balance.amount = balance.amount + oldAmount);
           await balance.save();
         }
       }
-      const updatatransaction = await Transaction.findByIdAndUpdate(
+      const updataTransaction = await Transaction.findByIdAndUpdate(
         req.params.id,
         {
           $set: {
@@ -99,27 +148,35 @@ class Finance {
         },
         { new: true }
       );
-      res.status(202).json(updatatransaction);
+      res.status(202).json(updataTransaction);
     } catch (error: any) {
       console.warn(error);
       res.status(400).send({ message: error });
     }
   }
 
-  async deletetransaction(req: Request, res: Response) {
+  async deleteTransaction(req: Request, res: Response) {
     try {
       const { id } = req.params;
       const transaction = await Transaction.findByIdAndDelete(id);
       const checktransactionExists = await Balance.findOne();
+      const transactionExists = await Transaction.findOne();
 
-      if (checktransactionExists) {
+      if (checktransactionExists && transactionExists) {
         const oldAmount = checktransactionExists.amount;
+        const oldType = transactionExists.type;
 
         let balance = await Balance.findOne();
         if (balance) {
-          balance.amount = balance.amount - oldAmount;
-          console.log(oldAmount);
-          await balance.save();
+          if (oldType === "credit") {
+            balance.amount = balance.amount - oldAmount;
+            console.log(oldAmount);
+            await balance.save();
+          } else if (oldType === "debit") {
+            balance.amount = balance.amount + oldAmount;
+            console.log(oldAmount);
+            await balance.save();
+          }
         }
       }
       res.status(200).send("Transação Deletada");
@@ -129,13 +186,32 @@ class Finance {
     }
   }
 
-  async getAlltransaction(req: Request, res: Response) {
-    const { id } = req.params;
-
+  async searchTransaction(req: Request, res: Response) {
+    const { query } = req.query;
+    console.log(query);
     try {
-      const transaction = await Transaction.find();
+      const transaction = await Transaction.find().find({
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { content: { $regex: query, $options: "i" } },
+          { id: { query } },
+        ],
+      });
       res.status(200).json(transaction);
-    } catch (error) {}
+    } catch (error) {
+      console.warn(error);
+      res.send(400).send({ message: error });
+    }
+  }
+
+  async getByIdTransaction(req: Request, res: Response) {
+    try {
+      const transaction = await Transaction.findById(req.params.id);
+      res.status(200).json(transaction);
+    } catch (error) {
+      console.warn(error);
+      res.send(400).send({ message: error });
+    }
   }
 }
 
