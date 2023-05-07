@@ -1,5 +1,5 @@
 import mongoose, { Request, Response } from "express";
-import { Status } from "../models/Status.model";
+import { StatusModel } from "../models/Status.model";
 import { User } from "../models/User.model";
 class StatusControler {
   async create(req: Request, res: Response) {
@@ -9,7 +9,7 @@ class StatusControler {
       if (!user) {
         return res.status(404).send({ message: "Usuário não encontrado." });
       }
-      const status = new Status({
+      const status = new StatusModel({
         name: req.body.name,
         user: user,
       });
@@ -24,7 +24,7 @@ class StatusControler {
   async getAll(req: Request, res: Response) {
     const { query } = req.query;
     try {
-      const status = await Status.find();
+      const status = await StatusModel.find();
       res.status(200).json(status);
     } catch (error) {
       console.error(error);
@@ -34,7 +34,7 @@ class StatusControler {
 
   async getById(req: Request, res: Response) {
     try {
-      const status = await Status.findById(req.params.id);
+      const status = await StatusModel.findById(req.params.id);
       res.status(200).json(status);
     } catch (error) {
       console.error(error);
@@ -44,7 +44,7 @@ class StatusControler {
 
   async delete(req: Request, res: Response) {
     try {
-      const status = await Status.findByIdAndDelete(req.params.id);
+      const status = await StatusModel.findByIdAndDelete(req.params.id);
       if (!status) return res.status(404).send("Usuário não encontrado.");
       return res.status(200).send("Usuário deletado com sucesso.");
     } catch (error) {
@@ -55,7 +55,7 @@ class StatusControler {
 
   async update(req: Request, res: Response) {
     try {
-      const status = await Status.findByIdAndUpdate(
+      const status = await StatusModel.findByIdAndUpdate(
         req.params.id,
         { $set: { name: req.body.name } },
         { new: true }

@@ -4,3 +4,4 @@ export * from "./route/financeRouter";
 export * from "./route/statusRouter";
 export * from "./route/customersRouter";
 export * from "./route/serviceRouter";
+export * from "./route/orderRouter";

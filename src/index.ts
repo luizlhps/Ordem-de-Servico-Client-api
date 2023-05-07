@@ -6,6 +6,7 @@ import {
   adminRouter,
   customerRouter,
   financeRouter,
+  orderRouter,
   serviceRouter,
   statusRouter,
   userRouter,
@@ -20,6 +21,7 @@ const port = process.env.PORT || 7000;
 
 app.use(express.json());
 app.use("/", userRouter);
+app.use("/order", orderRouter);
 app.use("/admin", adminRouter);
 app.use("/finance", financeRouter);
 app.use("/status", statusRouter);

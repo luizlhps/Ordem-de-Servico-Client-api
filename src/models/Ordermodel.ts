@@ -6,26 +6,26 @@ export interface IOrder extends Document {
   brand: string;
   model: string;
   defect: string;
-  services: string[];
+  services: Schema.Types.ObjectId[];
   status: Schema.Types.ObjectId[];
   client: Schema.Types.ObjectId[];
 }
 
 const orderSchema: Schema = new Schema(
   {
-    id: { type: Number, unique: true },
     equipment: { type: String, required: true },
     brand: { type: String, required: true },
     model: { type: String, required: true },
     defect: { type: String, required: true },
-    services: { type: [serviceModel], required: false },
-    status: { type: Schema.Types.ObjectId, ref: "status", required: true },
-    /*   client: { type: Schema.Types.ObjectId, ref: "Client", required: true }, */
+    services: [{ type: Schema.Types.ObjectId, ref: "Service", required: true }],
+    status: { type: Schema.Types.ObjectId, ref: "Status", required: true },
+    customer: { type: Schema.Types.ObjectId, ref: "Cliente", required: true },
   },
   {
     versionKey: false,
     timestamps: true,
+    strictPopulate: false,
   }
 );
 
-export const Client = model("Order", orderSchema);
+export const orderModel = model("Order", orderSchema);

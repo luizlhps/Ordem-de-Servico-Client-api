@@ -1,7 +1,14 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-export const serviceModel = model(
-  "service",
+interface IService extends Document {
+  id: string;
+  title: string;
+  description: string;
+  amount: number;
+}
+
+export const serviceModel = model<IService>(
+  "Service",
   new Schema(
     {
       id: { type: String, unique: true },

@@ -2,23 +2,16 @@ import mongoose, { Schema, Document, model } from "mongoose";
 import { string } from "joi";
 import { userSchema } from "./User.model";
 
-const userSubSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: false },
-  password: { type: String, required: false },
-});
+export interface IStatus extends Document {
+  name: string;
+}
 
-const statusSchema: Schema = new Schema(
+const statusSchema: Schema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    user: {
-      type: userSubSchema,
-      required: false,
-      select: false,
-    },
   },
 
   { versionKey: false, timestamps: true }
 );
 
-export const Status = model("Status", statusSchema);
+export const StatusModel = model<IStatus>("Status", statusSchema);

@@ -61,6 +61,8 @@ class Finance {
       const newAmount = amount;
       const newType = type;
       let balance = await Balance.findOne();
+
+      //trocar para um switch case
       if (balance) {
         //credito
         if (
@@ -101,7 +103,6 @@ class Finance {
             balance.amount = balance.amount - (newAmount - oldAmount);
             await balance.save();
           }
-
           if (oldAmount > newAmount && newAmount !== 0) {
             balance.amount = balance.amount - (oldAmount - newAmount);
             await balance.save();
@@ -188,7 +189,6 @@ class Finance {
 
   async searchTransaction(req: Request, res: Response) {
     const { query } = req.query;
-    console.log(query);
     try {
       const transaction = await Transaction.find().find({
         $or: [

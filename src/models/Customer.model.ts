@@ -29,6 +29,7 @@ const customerSchema = new mongoose.Schema(
         complement: String,
       },
     ],
+    orders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
   },
   { versionKey: false, timestamps: true }
 );

@@ -5,7 +5,7 @@ import { model, Schema } from "mongoose";
 class Service {
   async createService(req: Request, res: Response) {
     const { title, description, amount } = req.body;
-    ////////////
+
     // counter Table
     const counterSchema = model(
       "counterService",
@@ -15,7 +15,7 @@ class Service {
       })
     );
 
-    async function getNextStudentId() {
+    async function getNextId() {
       try {
         const count = await counterSchema.findOneAndUpdate(
           { _id: "autoval" },
@@ -30,7 +30,7 @@ class Service {
     ////////////
     try {
       const service = await serviceModel.create({
-        id: await getNextStudentId(),
+        id: await getNextId(),
         title,
         description,
         amount,
