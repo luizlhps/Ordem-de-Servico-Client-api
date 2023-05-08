@@ -1,6 +1,21 @@
 import { model, Schema } from "mongoose";
 
-export const Balance = model(
+export interface IBalance extends Document {
+  amount: number;
+}
+
+export interface ITransaction extends Document {
+  title: string;
+  description: string;
+  amount: number;
+  type: "credit" | "debit";
+  status: string;
+  order: Schema.Types.ObjectId;
+  entryDate: Date;
+  exitDate?: Date;
+}
+
+export const Balance = model<IBalance>(
   "Balance",
   new Schema({
     amount: {
@@ -10,7 +25,7 @@ export const Balance = model(
   })
 );
 
-export const Transaction = model(
+export const Transaction = model<ITransaction>(
   "Transaction",
   new Schema(
     {

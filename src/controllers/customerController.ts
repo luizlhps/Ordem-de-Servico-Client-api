@@ -9,7 +9,6 @@ class CustomerController {
       if (!address) {
         throw new Error(`Address is required`);
       }
-
       address.forEach((item: IAddress) => {
         requiredFields.forEach((field) => {
           if (!item.hasOwnProperty(field)) {

@@ -36,8 +36,6 @@ class OrderController {
         return;
       }
 
-      console.log;
-
       if (!customerId) {
         res.status(400).json({ message: "Cliente não encontrado" });
         return;

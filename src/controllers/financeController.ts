@@ -2,6 +2,104 @@ import { Balance, Transaction } from "../models/Finance.model";
 import { Request, Response } from "express";
 
 class Finance {
+  private async updateCalculateDebit(
+    oldType: string,
+    newType: string,
+    status: string,
+    type: string,
+    amountTransaction: any,
+    balance: any,
+    oldAmount: number,
+    newAmount: number
+  ) {
+    switch (true) {
+      case oldType === newType && status === "finished" && type === "debit" && amountTransaction.status !== "finished":
+        balance.amount = balance.amount + oldAmount * -1;
+        await balance.save();
+        break;
+      case status === "finished" && type === "debit" && oldType === newType:
+        if (oldAmount <= newAmount) {
+          balance.amount = balance.amount - (newAmount - oldAmount);
+          await balance.save();
+        }
+        if (oldAmount > newAmount && newAmount !== 0) {
+          balance.amount = balance.amount + (oldAmount - newAmount);
+          await balance.save();
+        }
+        if (newAmount === 0) {
+          balance.amount = balance.amount + oldAmount;
+          await balance.save();
+        }
+        break;
+      default:
+        break;
+    }
+    await balance.save();
+  }
+  private async updateCalculateCredit(
+    oldType: string,
+    newType: string,
+    status: string,
+    type: string,
+    amountTransaction: any,
+    balance: any,
+    oldAmount: number,
+    newAmount: number
+  ) {
+    if (oldType === newType && status === "finished" && type === "credit" && amountTransaction.status !== "finished") {
+      balance.amount = balance.amount + oldAmount;
+      await balance.save();
+    } else if (status === "finished" && type === "credit" && oldType === newType) {
+      if (oldAmount < newAmount) {
+        balance.amount = balance.amount + newAmount - oldAmount;
+        await balance.save();
+      }
+
+      if (oldAmount > newAmount && newAmount !== 0) {
+        balance.amount = balance.amount - (oldAmount - newAmount);
+        await balance.save();
+      }
+      if (newAmount === 0) {
+        balance.amount = balance.amount - oldAmount;
+        await balance.save();
+      }
+    }
+  }
+  private async updateCalculateCreditForDebit(
+    oldType: string,
+    newType: string,
+    balance: any,
+    oldAmount: number,
+    newAmount: number
+  ) {
+    if (oldType === "credit" && newType === "debit") {
+      console.log("debito");
+      console.log(balance.amount);
+      if (balance.amount < 0) {
+        console.log("opa");
+        balance.amount = balance.amount + oldAmount * -2;
+      } else {
+        newAmount <= oldAmount
+          ? (balance.amount = balance.amount - newAmount)
+          : (balance.amount = balance.amount - newAmount - oldAmount);
+      }
+      await balance.save();
+    }
+  }
+  private async updateCalculateDebitForCredit(
+    oldType: string,
+    newType: string,
+    balance: any,
+    oldAmount: number,
+    newAmount: number
+  ) {
+    if (oldType === "debit" && newType === "credit") {
+      console.log("opa");
+      newAmount ? (balance.amount = balance.amount + newAmount) : (balance.amount = balance.amount + oldAmount);
+      await balance.save();
+    }
+  }
+
   async createTransaction(req: Request, res: Response) {
     const { title, description, amount, type, status, order, entryDate, exitDate } = req.body;
 
@@ -53,7 +151,7 @@ class Finance {
         return res.status(404).json({ message: "Transação não encontrada" });
       }
 
-      //atualiza o balance caso o status seja finalizad e que o tipo seja credito
+      //atualiza o balance casofun o status seja finalizad e que o tipo seja credito
 
       const amountTransaction = checktransactionExists;
       const oldAmount = checktransactionExists.amount;
@@ -62,76 +160,18 @@ class Finance {
       const newType = type;
       let balance = await Balance.findOne();
 
-      //trocar para um switch case
       if (balance) {
         //credito
-        if (
-          oldType === newType &&
-          status === "finished" &&
-          type === "credit" &&
-          amountTransaction.status !== "finished"
-        ) {
-          balance.amount = balance.amount + oldAmount;
-          await balance.save();
-        } else if (status === "finished" && type === "credit" && oldType === newType) {
-          if (oldAmount < newAmount) {
-            balance.amount = balance.amount + newAmount - oldAmount;
-            await balance.save();
-          }
-
-          if (oldAmount > newAmount && newAmount !== 0) {
-            balance.amount = balance.amount - (oldAmount - newAmount);
-            await balance.save();
-          }
-          if (newAmount === 0) {
-            balance.amount = balance.amount - oldAmount;
-            await balance.save();
-          }
-        }
+        this.updateCalculateCredit(oldType, newType, status, type, amountTransaction, balance, oldAmount, newAmount);
 
         //debito
-        if (
-          oldType === newType &&
-          status === "finished" &&
-          type === "debit" &&
-          amountTransaction.status !== "finished"
-        ) {
-          balance.amount = balance.amount + oldAmount * -1;
-          await balance.save();
-        } else if (status === "finished" && type === "debit" && oldType === newType) {
-          if (oldAmount < newAmount) {
-            balance.amount = balance.amount - (newAmount - oldAmount);
-            await balance.save();
-          }
-          if (oldAmount > newAmount && newAmount !== 0) {
-            balance.amount = balance.amount - (oldAmount - newAmount);
-            await balance.save();
-          }
-          if (newAmount === 0) {
-            balance.amount = balance.amount + oldAmount;
-            await balance.save();
-          }
-        }
+        this.updateCalculateDebit(oldType, newType, status, type, amountTransaction, balance, oldAmount, newAmount);
 
-        if (oldType === "credit" && newType === "debit") {
-          console.log("debito");
-          console.log(balance.amount);
-          if (balance.amount < 0) {
-            balance.amount = balance.amount + oldAmount * -2;
-          } else {
-            newAmount < oldAmount
-              ? (balance.amount = balance.amount - newAmount)
-              : (balance.amount = balance.amount - newAmount - oldAmount);
-          }
-          await balance.save();
-        }
-        if (oldType === "debit" && newType === "credit") {
-          console.log("opa");
-          newAmount
-            ? (balance.amount = balance.amount + newAmount)
-            : (balance.amount = balance.amount + oldAmount);
-          await balance.save();
-        }
+        //credito para debito
+        this.updateCalculateCreditForDebit(oldType, newType, balance, oldAmount, newAmount);
+
+        //debito para credito
+        this.updateCalculateDebitForCredit(oldType, newType, balance, oldAmount, newAmount);
       }
       const updataTransaction = await Transaction.findByIdAndUpdate(
         req.params.id,
