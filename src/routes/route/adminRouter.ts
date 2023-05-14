@@ -4,5 +4,5 @@ import { AuthenticatedRequest, auth } from "../../controllers/authController";
 export const adminRouter = Express.Router();
 
 adminRouter.get("/", auth.autheticate, async (req, res) => {
-  res.send("So pode ser visto pelo adm");
+  res.json("So pode ser visto pelo adm");
 });

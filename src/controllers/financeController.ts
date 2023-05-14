@@ -1,5 +1,7 @@
-import { Balance, Transaction } from "../models/Finance.model";
+import { Schema, model } from "mongoose";
+import { Balance, Transaction, counterFinanceModel } from "../models/Finance.model";
 import { Request, Response } from "express";
+import { counterId } from "../utils/autoIncrementId";
 
 class Finance {
   private async updateCalculateDebit(
@@ -113,7 +115,10 @@ class Finance {
         return res.status(400).send("o status deve ser aberto ou finalizado ou atrasado");
       }
 
+      const incrementId = (await counterId(counterFinanceModel)).getNextId;
+
       const transaction = await Transaction.create({
+        id: await incrementId(),
         title,
         description,
         amount,
@@ -228,19 +233,32 @@ class Finance {
   }
 
   async searchTransaction(req: Request, res: Response) {
-    const { query } = req.query;
+    const { query, page = 1, limit = 10 } = req.query;
+    const numberId = Number(query);
+
     try {
-      const transaction = await Transaction.find().find({
+      const transaction = await Transaction.find({
         $or: [
           { title: { $regex: query, $options: "i" } },
           { content: { $regex: query, $options: "i" } },
-          { id: { query } },
+          { id: numberId ? numberId : null },
+        ],
+      })
+        .skip((Number(page) - 1) * Number(limit))
+        .limit(Number(limit));
+
+      const totalCount = await Transaction.countDocuments({
+        $or: [
+          { title: { $regex: query, $options: "i" } },
+          { content: { $regex: query, $options: "i" } },
+          { id: numberId ? numberId : null },
         ],
       });
-      res.status(200).json(transaction);
+      if (transaction.length < 1) return res.status(404).json("nada encontrado");
+      res.status(200).json({ Total: totalCount, page: Number(page), transaction });
     } catch (error) {
       console.warn(error);
-      res.send(400).send({ message: error });
+      res.status(400).send({ message: error });
     }
   }
 

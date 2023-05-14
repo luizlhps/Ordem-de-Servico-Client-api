@@ -1,17 +1,25 @@
 import { Schema, model, Document } from "mongoose";
 
 interface IService extends Document {
-  id: string;
+  id: number;
   title: string;
   description: string;
   amount: number;
 }
 
+export const serviceCounter = model(
+  "serviceStatus",
+  new Schema({
+    _id: { type: String, required: true },
+    seq_value: { type: Number, default: 0 },
+  })
+);
+
 export const serviceModel = model<IService>(
   "Service",
   new Schema(
     {
-      id: { type: String, unique: true },
+      id: { type: Number, unique: true },
       title: { type: String, required: true },
       description: { type: String, required: true },
       amount: { type: Number, required: true },

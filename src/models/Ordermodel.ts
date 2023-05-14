@@ -11,8 +11,17 @@ export interface IOrder extends Document {
   client: Schema.Types.ObjectId[];
 }
 
+export const ordersCounter = model(
+  "ordersStatus",
+  new Schema({
+    _id: { type: String, required: true },
+    seq_value: { type: Number, default: 0 },
+  })
+);
+
 const orderSchema: Schema = new Schema(
   {
+    id: { type: Number, unique: true },
     equipment: { type: String, required: true },
     brand: { type: String, required: true },
     model: { type: String, required: true },

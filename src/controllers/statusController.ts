@@ -1,19 +1,18 @@
 import mongoose, { Request, Response } from "express";
-import { StatusModel } from "../models/Status.model";
-import { User } from "../models/User.model";
+import { StatusModel, statusCounter } from "../models/Status.model";
+import { counterId } from "../utils/autoIncrementId";
+
 class StatusControler {
   async create(req: Request, res: Response) {
+    const { name } = req.body;
     try {
-      const user = await User.findById(req.body.user).select("name _id").lean();
+      const incrementId = (await counterId(statusCounter)).getNextId();
 
-      if (!user) {
-        return res.status(404).send({ message: "Usuário não encontrado." });
-      }
-      const status = new StatusModel({
-        name: req.body.name,
-        user: user,
+      const status = await StatusModel.create({
+        id: await incrementId,
+        name,
       });
-      await status.save();
+
       res.send(status);
     } catch (err) {
       console.log(err);

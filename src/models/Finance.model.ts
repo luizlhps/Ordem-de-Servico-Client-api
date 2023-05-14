@@ -5,6 +5,7 @@ export interface IBalance extends Document {
 }
 
 export interface ITransaction extends Document {
+  id: number;
   title: string;
   description: string;
   amount: number;
@@ -14,6 +15,14 @@ export interface ITransaction extends Document {
   entryDate: Date;
   exitDate?: Date;
 }
+
+export const counterFinanceModel = model(
+  "CounterFinance",
+  new Schema({
+    _id: { type: String, required: true },
+    seq_value: { type: Number, default: 0 },
+  })
+);
 
 export const Balance = model<IBalance>(
   "Balance",
@@ -29,6 +38,7 @@ export const Transaction = model<ITransaction>(
   "Transaction",
   new Schema(
     {
+      id: { type: Number, unique: true },
       title: { type: String, required: true },
       description: { type: String, required: true },
       amount: { type: Number, required: true },

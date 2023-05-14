@@ -24,7 +24,7 @@ class UserController {
       });
 
       const savedUser = await user.save();
-      res.status(200).send(savedUser);
+      res.status(200).json(savedUser);
     } catch (error: any) {
       if (error.code === 11000) {
         res.status(400).send("Este e-mail já está sendo usado.");
@@ -52,8 +52,9 @@ class UserController {
         expiresIn: "15d",
       });
 
-      res.header("token", token);
-      res.send("Você Esta Logado");
+      console.log(token);
+      res.header("Authorization", token);
+      res.status(200).json({ accessToken: token });
     } catch (error) {}
   }
 }

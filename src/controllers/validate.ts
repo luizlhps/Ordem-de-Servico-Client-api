@@ -17,3 +17,11 @@ export const loginValidate = (data: any) => {
 
   return schema.validate(data);
 };
+export const recoveryPasswordValidate = (data: any) => {
+  const schema = Joi.object({
+    token: Joi.string().required().min(3).max(50),
+    password: Joi.string().required().min(6).max(250),
+  });
+
+  return schema.validate(data);
+};

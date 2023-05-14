@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
-import mongoose, { Types, Schema } from "mongoose";
+import mongoose, { Types, Schema, Document, Error } from "mongoose";
 import { CustomerSchema } from "../models/Customer.model";
 import { custom } from "joi";
-import { orderModel } from "../models/Ordermodel";
+import { orderModel, ordersCounter } from "../models/Ordermodel";
 import { serviceModel } from "../models/Service.model";
 import { StatusModel } from "../models/Status.model";
 import { ObjectId } from "bson";
+import { counterId } from "../utils/autoIncrementId";
 
 class OrderController {
   async createOrder(req: Request, res: Response) {
@@ -46,7 +47,10 @@ class OrderController {
         return;
       }
 
+      const incrementId = (await counterId(ordersCounter)).getNextId;
+
       const order = await orderModel.create({
+        id: await incrementId(),
         equipment,
         brand,
         model,
@@ -73,15 +77,29 @@ class OrderController {
   async getByIdOrder(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const order = await orderModel
-        .findById(id)
-        .populate(["status", "services", "customer", "orders"])
-        .populate({ path: "customer", populate: { path: "orders" } });
+      const { limit, page } = req.query;
 
-      res.status(200).json(order);
-    } catch (error) {
+      const getsss = async (page = 1, limit = 5) => {
+        try {
+          const orders = await orderModel
+            .find<Document>()
+            .populate(["status", "services", "orders"])
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+          const count = await orderModel.estimatedDocumentCount();
+          return { orders, total: count };
+        } catch (err: any) {
+          throw new Error(err);
+        }
+      };
+
+      const { orders, total } = await getsss(Number(page), Number(limit));
+
+      res.status(200).json({ total, page: Number(page), orders });
+    } catch (error: any) {
       console.warn(error);
-      res.status(400).send({ message: error });
+      res.status(400).send({ message: error.message });
     }
   }
 }

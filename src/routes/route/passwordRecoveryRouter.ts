@@ -3,4 +3,5 @@ import { passowordRecoveryController } from "../../controllers/recoveryPassowrdC
 
 export const passowordRecoveryRouter = Router();
 
-passowordRecoveryRouter.post("/forgetPassowrd", passowordRecoveryController.ForgetPassword);
+passowordRecoveryRouter.post("/forgetPassword", passowordRecoveryController.ForgetPassword);
+passowordRecoveryRouter.post("/ResetPassword", passowordRecoveryController.resetPassword);

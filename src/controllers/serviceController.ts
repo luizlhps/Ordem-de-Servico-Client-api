@@ -1,36 +1,16 @@
 import { Request, Response } from "express";
-import { serviceModel } from "../models/Service.model";
+import { serviceCounter, serviceModel } from "../models/Service.model";
 import { model, Schema } from "mongoose";
+import { counterId } from "../utils/autoIncrementId";
 
 class Service {
   async createService(req: Request, res: Response) {
     const { title, description, amount } = req.body;
 
-    // counter Table
-    const counterSchema = model(
-      "counterService",
-      new Schema({
-        _id: { type: String, required: true },
-        seq_value: { type: Number, default: 0 },
-      })
-    );
-
-    async function getNextId() {
-      try {
-        const count = await counterSchema.findOneAndUpdate(
-          { _id: "autoval" },
-          { $inc: { seq_value: 1 } },
-          { returnNewDocument: true, upsert: true, new: true }
-        );
-        return count.seq_value;
-      } catch (error) {
-        console.warn(error);
-      }
-    }
-    ////////////
+    const incrementId = (await counterId(serviceCounter)).getNextId;
     try {
       const service = await serviceModel.create({
-        id: await getNextId(),
+        id: await incrementId(),
         title,
         description,
         amount,
@@ -62,13 +42,26 @@ class Service {
   }
   async getSearch(req: Request, res: Response) {
     const { query } = req.query;
+    const numberId = Number(query);
     try {
-      const service = await serviceModel.find().find({
+      const service = await serviceModel.find({
         $or: [
-          { title: { $Regex: query, $Options: "i" } },
-          { description: { $Regex: query, $Options: "i" } },
+          { title: { $regex: query, $options: "i" } },
+          { content: { $regex: query, $options: "i" } },
+          { id: numberId ? numberId : null },
         ],
       });
+      if (service.length < 1) return res.status(404).json("nada encontrado");
+      res.status(200).json(service);
+    } catch (error) {
+      console.warn(error);
+      res.status(400).send({ message: error });
+    }
+  }
+  async getAll(req: Request, res: Response) {
+    try {
+      const service = await serviceModel.find();
+
       res.status(200).json(service);
     } catch (error) {
       console.warn(error);
