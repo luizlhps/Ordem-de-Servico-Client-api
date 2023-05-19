@@ -5,6 +5,7 @@ import { counterId } from "../utils/autoIncrementId";
 class StatusControler {
   async create(req: Request, res: Response) {
     const { name } = req.body;
+    if (!name) return res.status(400).send({ message: "É necessário o nome do status" });
     try {
       const incrementId = (await counterId(statusCounter)).getNextId();
 
@@ -21,10 +22,21 @@ class StatusControler {
   }
 
   async getAll(req: Request, res: Response) {
-    const { query } = req.query;
+    const { filter, page = 1, limit = 5 } = req.query;
+    const filterId = Number(filter);
     try {
-      const status = await StatusModel.find();
-      res.status(200).json(status);
+      const status = await StatusModel.find({
+        $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+      })
+        .sort({ createdAt: -1 })
+        .skip((Number(page) - 1) * Number(limit))
+        .limit(Number(limit));
+
+      const totalCount = await StatusModel.countDocuments({
+        $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+      });
+
+      res.status(200).json({ Page: Number(page), Limit: Number(limit), Total: Number(totalCount), status });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erro ao achar a nota" });
@@ -42,7 +54,22 @@ class StatusControler {
   }
 
   async delete(req: Request, res: Response) {
+    const { id } = req.params;
     try {
+      const closeNotPossiblyDelete = await StatusModel.findOne({ name: "Fechado" });
+      const OpennotPossiblyDelete = await StatusModel.findOne({ name: "Aberto" });
+
+      if (closeNotPossiblyDelete) {
+        if (closeNotPossiblyDelete?._id.toString().toLowerCase() === id.toLowerCase()) {
+          return res.status(401).json({ message: "Não é possivel apagar o status Fechado" });
+        }
+      }
+      if (OpennotPossiblyDelete) {
+        if (OpennotPossiblyDelete?._id.toString().toLowerCase() === id.toLowerCase()) {
+          return res.status(401).json({ message: "Não é possivel apagar o status Aberto" });
+        }
+      }
+
       const status = await StatusModel.findByIdAndDelete(req.params.id);
       if (!status) return res.status(404).send("Usuário não encontrado.");
       return res.status(200).send("Usuário deletado com sucesso.");

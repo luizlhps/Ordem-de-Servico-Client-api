@@ -75,10 +75,7 @@ class Finance {
     newAmount: number
   ) {
     if (oldType === "credit" && newType === "debit") {
-      console.log("debito");
-      console.log(balance.amount);
       if (balance.amount < 0) {
-        console.log("opa");
         balance.amount = balance.amount + oldAmount * -2;
       } else {
         newAmount <= oldAmount
@@ -96,7 +93,6 @@ class Finance {
     newAmount: number
   ) {
     if (oldType === "debit" && newType === "credit") {
-      console.log("opa");
       newAmount ? (balance.amount = balance.amount + newAmount) : (balance.amount = balance.amount + oldAmount);
       await balance.save();
     }
@@ -216,11 +212,9 @@ class Finance {
         if (balance) {
           if (oldType === "credit") {
             balance.amount = balance.amount - oldAmount;
-            console.log(oldAmount);
             await balance.save();
           } else if (oldType === "debit") {
             balance.amount = balance.amount + oldAmount;
-            console.log(oldAmount);
             await balance.save();
           }
         }
@@ -240,7 +234,7 @@ class Finance {
       const transaction = await Transaction.find({
         $or: [
           { title: { $regex: query, $options: "i" } },
-          { content: { $regex: query, $options: "i" } },
+          { description: { $regex: query, $options: "i" } },
           { id: numberId ? numberId : null },
         ],
       })

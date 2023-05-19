@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, model } from "mongoose";
 import { number, string } from "joi";
 import { userSchema } from "./User.model";
 
-export interface IStatus extends Document {
+export interface IStatus {
   name: string;
 }
 
