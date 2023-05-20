@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 
+//Pega um model e faz o update adicionando mais um no seq_value
 export const counterId = async (name: any) => {
   const nameModel = name;
 

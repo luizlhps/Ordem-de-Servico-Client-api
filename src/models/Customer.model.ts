@@ -9,6 +9,13 @@ export interface IAddress extends Document {
   city: string;
   number: string;
 }
+export const CostumersCounter = model(
+  "costumersCounter",
+  new Schema({
+    _id: { type: String, required: true },
+    seq_value: { type: Number, default: 0 },
+  })
+);
 
 const customerSchema = new mongoose.Schema(
   {
@@ -33,4 +40,4 @@ const customerSchema = new mongoose.Schema(
   },
   { versionKey: false, timestamps: true }
 );
-export const CustomerSchema = model("Cliente", customerSchema);
+export const CustomerModal = model("Cliente", customerSchema);

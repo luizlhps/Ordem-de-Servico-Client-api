@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import mongoose, { Types, Schema, Document, Error } from "mongoose";
-import { CustomerSchema } from "../models/Customer.model";
+import { CustomerModal } from "../models/Customer.model";
 import { custom } from "joi";
 import { orderModel, ordersCounter } from "../models/Ordermodel";
 import { serviceModel } from "../models/Service.model";
@@ -12,7 +12,7 @@ class OrderController {
   async createOrder(req: Request, res: Response) {
     const { equipment, brand, model, defect, services, status, customer } = req.body;
     try {
-      const customerId = await CustomerSchema.findById(customer);
+      const customerId = await CustomerModal.findById(customer);
       const statusId = await StatusModel.findById(status);
 
       const validadEerrorsService: string[] = [];
@@ -61,7 +61,7 @@ class OrderController {
       });
 
       const customerIdObject = new mongoose.Types.ObjectId(customerId?._id);
-      const customerUpdate = await CustomerSchema?.updateOne(
+      const customerUpdate = await CustomerModal?.updateOne(
         { _id: customerIdObject },
         { $push: { orders: new mongoose.Types.ObjectId(customerId?._id) } }
       );

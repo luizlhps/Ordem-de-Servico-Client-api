@@ -7,13 +7,11 @@ config();
 
 mongoose.plugin((schema: any) => {
   schema.set("toJSON", {
-    getters: true,
-    virtuals: false,
+    getters: true, //transforma os campos dos documentos antes de serem transformados em json, modificar um valor antes de ser retornado.
+    virtuals: false, //campos definidos no esquema setão incluídos no json resultante
     transform: (doc: any, ret: any) => {
       ret.createdAt = format(ret.createdAt, "dd/MM/yyyy HH:mm:ss");
       ret.updatedAt = format(ret.updatedAt, "dd/MM/yyyy HH:mm:ss");
-      delete ret._id;
-      delete ret.__v;
       return ret;
     },
   });
