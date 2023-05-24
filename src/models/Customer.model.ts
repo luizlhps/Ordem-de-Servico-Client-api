@@ -19,6 +19,7 @@ export const CostumersCounter = model(
 
 const customerSchema = new mongoose.Schema(
   {
+    id: Number,
     name: String,
     email: String,
     contact: String,
@@ -40,4 +41,4 @@ const customerSchema = new mongoose.Schema(
   },
   { versionKey: false, timestamps: true }
 );
-export const CustomerModal = model("Cliente", customerSchema);
+export const CustomerModal = model("Customer", customerSchema);

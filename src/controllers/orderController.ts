@@ -10,7 +10,7 @@ import { counterId } from "../utils/autoIncrementId";
 
 class OrderController {
   async createOrder(req: Request, res: Response) {
-    const { equipment, brand, model, defect, services, status, customer } = req.body;
+    const { equipment, brand, model, defect, services, status, customer, observation } = req.body;
     try {
       const customerId = await CustomerModal.findById(customer);
       const statusId = await StatusModel.findById(status);
@@ -54,6 +54,7 @@ class OrderController {
         equipment,
         brand,
         model,
+        observation,
         defect,
         services: validatedServices,
         status: statusId?._id,

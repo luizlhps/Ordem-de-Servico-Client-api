@@ -36,7 +36,7 @@ class StatusControler {
         $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
       });
 
-      res.status(200).json({ Page: Number(page), Limit: Number(limit), Total: Number(totalCount), status });
+      res.status(200).json({ page: Number(page), limit: Number(limit), total: Number(totalCount), status });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: "Erro ao achar a nota" });
