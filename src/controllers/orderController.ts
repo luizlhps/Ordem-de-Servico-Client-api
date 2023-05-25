@@ -10,13 +10,14 @@ import { counterId } from "../utils/autoIncrementId";
 
 class OrderController {
   async createOrder(req: Request, res: Response) {
-    const { equipment, brand, model, defect, services, status, customer, observation } = req.body;
+    const { equipment, brand, model, defect, services, status, customer, observation, dateEntry } = req.body;
     try {
       const customerId = await CustomerModal.findById(customer);
       const statusId = await StatusModel.findById(status);
 
       const validadEerrorsService: string[] = [];
-      const validatedServices = await Promise.all(
+
+      /*       const validatedServices = await Promise.all(
         services.map(async (serviceId: string) => {
           if (!mongoose.Types.ObjectId.isValid(serviceId)) {
             validadEerrorsService.push(`Serviço não é valido: ${serviceId}`);
@@ -31,11 +32,12 @@ class OrderController {
 
           return existingService;
         })
-      );
+      )
+      
       if (validadEerrorsService.length > 0) {
         res.status(400).json({ message: validadEerrorsService.join("; ") });
         return;
-      }
+      } */
 
       if (!customerId) {
         res.status(400).json({ message: "Cliente não encontrado" });
@@ -56,7 +58,8 @@ class OrderController {
         model,
         observation,
         defect,
-        services: validatedServices,
+        dateEntry,
+        services: [],
         status: statusId?._id,
         customer: customerId?._id,
       });
@@ -84,7 +87,7 @@ class OrderController {
         try {
           const orders = await orderModel
             .find<Document>()
-            .populate(["status", "services", "orders"])
+            .populate(["status", "services", "orders", "customer"])
             .skip((page - 1) * limit)
             .limit(limit);
 

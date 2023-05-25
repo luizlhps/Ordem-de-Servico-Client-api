@@ -28,9 +28,11 @@ const orderSchema: Schema = new Schema(
     model: { type: String, required: true },
     defect: { type: String, required: true },
     observation: { type: String, required: false },
+    dateEntry: { type: Date, required: true },
+
     services: [{ type: Schema.Types.ObjectId, ref: "Service", required: false }],
-    status: { type: Schema.Types.ObjectId, ref: "Status", required: true },
-    customer: { type: Schema.Types.ObjectId, ref: "Cliente", required: true },
+    status: { type: Schema.Types.ObjectId, ref: "Status", required: false },
+    customer: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
   },
   {
     versionKey: false,
