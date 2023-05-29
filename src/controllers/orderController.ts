@@ -92,6 +92,7 @@ class OrderController {
             .limit(limit);
 
           const count = await orderModel.estimatedDocumentCount();
+
           return { orders, total: count };
         } catch (err: any) {
           throw new Error(err);
