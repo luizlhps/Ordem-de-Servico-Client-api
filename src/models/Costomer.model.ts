@@ -37,8 +37,8 @@ const customerSchema = new mongoose.Schema(
         complement: String,
       },
     ],
-    orders: [{ type: Schema.Types.ObjectId, ref: "Order" }],
+    orders: [{ type: Schema.Types.ObjectId, ref: "Order", required: false }],
   },
   { versionKey: false, timestamps: true }
 );
-export const CustomerModal = model("Customer", customerSchema);
+export const CostumerModel = model("Customer", customerSchema);

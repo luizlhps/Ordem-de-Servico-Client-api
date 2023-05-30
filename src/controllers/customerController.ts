@@ -1,4 +1,4 @@
-import { CostumersCounter, CustomerModal, IAddress } from "../models/Customer.model";
+import { CostumerModel, CostumersCounter, IAddress } from "../models/Costomer.model";
 import mongoose, { Request, Response } from "express";
 import { counterId } from "../utils/autoIncrementId";
 
@@ -28,7 +28,7 @@ class CustomerController {
 
       const incrementId = (await counterId(CostumersCounter)).getNextId();
 
-      const cliente = await CustomerModal.create({
+      const cliente = await CostumerModel.create({
         id: await incrementId,
         name,
         email,
@@ -51,7 +51,7 @@ class CustomerController {
     const numberId = Number(filter);
 
     try {
-      const customer = await CustomerModal.find({
+      const customer = await CostumerModel.find({
         $or: [
           { name: { $regex: filter, $options: "i" } },
           { phone: filter },
@@ -61,9 +61,11 @@ class CustomerController {
       })
         .sort({ createdAt: -1 })
         .skip((Number(page) - 1) * Number(limit)) //skipa os itens por exemplo 2-1 * 10 = 10 skipa os 10 primeiros itens
-        .limit(Number(limit));
+        .limit(Number(limit))
+        .populate("orders")
+        .exec();
 
-      const totalCount = await CustomerModal.countDocuments({
+      const totalCount = await CostumerModel.countDocuments({
         $or: [
           { name: { $regex: filter, $options: "i" } },
           { phone: filter },
@@ -84,9 +86,9 @@ class CustomerController {
     if (!id) return res.status(400).send({ message: "o id é necéssario" });
 
     try {
-      const customer = await CustomerModal.findById(id);
+      const customer = await CostumerModel.findById(id).populate("orders");
 
-      res.status(200).json({ customer });
+      res.status(200).json(customer);
     } catch (error) {
       console.warn(error);
       res.status(400).json(error);
@@ -106,7 +108,7 @@ class CustomerController {
           }
         });
       });
-      const client = await CustomerModal.findByIdAndUpdate(
+      const client = await CostumerModel.findByIdAndUpdate(
         req.params.id,
         {
           $set: {
@@ -133,7 +135,7 @@ class CustomerController {
     const { id } = req.params;
 
     try {
-      const customer = await CustomerModal.findByIdAndDelete(id);
+      const customer = await CostumerModel.findByIdAndDelete(id);
 
       res.status(200).json({ customer });
     } catch (error) {

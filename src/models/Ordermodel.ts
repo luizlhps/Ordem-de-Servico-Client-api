@@ -1,15 +1,16 @@
-import mongoose, { Schema, Document, model } from "mongoose";
+import mongoose, { Schema, Document, model, Types } from "mongoose";
 import { serviceModel } from "./Service.model";
-
 export interface IOrder extends Document {
+  id: number;
   equipment: string;
   brand: string;
   model: string;
   defect: string;
   observation: string;
-  services: Schema.Types.ObjectId[];
-  status: Schema.Types.ObjectId[];
-  client: Schema.Types.ObjectId[];
+  dateEntry: Date;
+  services: Types.ObjectId[];
+  status: Types.ObjectId;
+  customer: Types.ObjectId;
 }
 
 export const ordersCounter = model(
@@ -20,7 +21,7 @@ export const ordersCounter = model(
   })
 );
 
-const orderSchema: Schema = new Schema(
+const orderSchema: Schema<IOrder> = new Schema(
   {
     id: { type: Number, unique: true },
     equipment: { type: String, required: true },
