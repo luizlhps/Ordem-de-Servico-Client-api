@@ -130,7 +130,7 @@ class OrderController {
       if (!costumer) return res.status(404).json({ message: "Cliente não encontrado" });
 
       const queryFilter = {
-        costumer: costumerId,
+        customer: costumerId,
         $or: [
           { equipment: { $regex: filter, $options: "i" } },
           { brand: { $regex: filter, $options: "i" } },
