@@ -52,11 +52,16 @@ class CustomerController {
 
     try {
       const customer = await CostumerModel.find({
-        $or: [
-          { name: { $regex: filter, $options: "i" } },
-          { phone: filter },
-          { cpfOrCnpj: filter },
-          { id: numberId ? numberId : null },
+        $and: [
+          {
+            $or: [
+              { name: { $regex: filter, $options: "i" } },
+              { phone: filter },
+              { cpfOrCnpj: filter },
+              { id: numberId ? numberId : null },
+            ],
+          },
+          { deleted: false },
         ],
       })
         .sort({ createdAt: -1 })

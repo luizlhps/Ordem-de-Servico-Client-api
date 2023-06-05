@@ -18,6 +18,7 @@ const statusSchema: Schema = new mongoose.Schema(
   {
     id: { type: Number, unique: true },
     name: { type: String, required: true },
+    deleted: { type: Boolean, default: false },
   },
 
   { versionKey: false, timestamps: true }

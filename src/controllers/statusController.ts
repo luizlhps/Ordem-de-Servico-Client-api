@@ -26,7 +26,12 @@ class StatusControler {
     const filterId = Number(filter);
     try {
       const status = await StatusModel.find({
-        $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+        $and: [
+          {
+            $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+          },
+          { deleted: false },
+        ],
       })
         .sort({ createdAt: -1 })
         .skip((Number(page) - 1) * Number(limit))

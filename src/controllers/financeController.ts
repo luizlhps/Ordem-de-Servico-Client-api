@@ -232,10 +232,15 @@ class Finance {
 
     try {
       const transaction = await Transaction.find({
-        $or: [
-          { title: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { id: numberId ? numberId : null },
+        $and: [
+          {
+            $or: [
+              { title: { $regex: query, $options: "i" } },
+              { description: { $regex: query, $options: "i" } },
+              { id: numberId ? numberId : null },
+            ],
+          },
+          { deleted: false },
         ],
       })
         .skip((Number(page) - 1) * Number(limit))

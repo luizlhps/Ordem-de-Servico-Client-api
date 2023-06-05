@@ -14,6 +14,7 @@ export interface ITransaction extends Document {
   order: Schema.Types.ObjectId;
   entryDate: Date;
   exitDate?: Date;
+  deleted: boolean;
 }
 
 export const counterFinanceModel = model(
@@ -47,6 +48,7 @@ export const Transaction = model<ITransaction>(
       order: { type: Schema.Types.ObjectId, ref: "Order" },
       entryDate: { type: Date, required: true },
       exitDate: { type: Date },
+      deleted: { type: Boolean, default: false },
     },
     { timestamps: true, versionKey: false }
   )

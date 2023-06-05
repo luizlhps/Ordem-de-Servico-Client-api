@@ -11,6 +11,7 @@ export interface IOrder extends Document {
   services: Types.ObjectId[];
   status: Types.ObjectId;
   customer: Types.ObjectId;
+  deleted: boolean;
 }
 
 export const ordersCounter = model(
@@ -30,10 +31,10 @@ const orderSchema: Schema<IOrder> = new Schema(
     defect: { type: String, required: true },
     observation: { type: String, required: false },
     dateEntry: { type: Date, required: true },
-
     services: [{ type: Schema.Types.ObjectId, ref: "Service", required: false }],
     status: { type: Schema.Types.ObjectId, ref: "Status", required: false },
     customer: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+    deleted: { type: Boolean, default: false },
   },
   {
     versionKey: false,

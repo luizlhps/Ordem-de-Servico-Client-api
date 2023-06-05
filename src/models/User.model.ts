@@ -8,6 +8,7 @@ interface IUser extends Document {
   passwordRecovery: string | null;
   passwordExpire: Date | null;
   remember: boolean;
+  deleted: boolean;
 }
 
 export const userSchema = new Schema<IUser>(
@@ -15,6 +16,7 @@ export const userSchema = new Schema<IUser>(
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
+    deleted: { type: Boolean, default: false },
     remember: Boolean,
     passwordRecovery: String,
     passwordExpire: Date,

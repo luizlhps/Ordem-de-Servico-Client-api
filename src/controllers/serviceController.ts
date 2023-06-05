@@ -68,10 +68,15 @@ class Service {
     try {
       const service = await serviceModel
         .find({
-          $or: [
-            { title: { $regex: filter, $options: "i" } },
-            { description: { $regex: filter, $options: "i" } },
-            { id: numberId ? numberId : null },
+          $and: [
+            {
+              $or: [
+                { title: { $regex: filter, $options: "i" } },
+                { description: { $regex: filter, $options: "i" } },
+                { id: numberId ? numberId : null },
+              ],
+            },
+            { deleted: false },
           ],
         })
         .sort({ updatedAt: -1 })

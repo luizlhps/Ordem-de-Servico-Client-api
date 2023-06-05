@@ -89,19 +89,23 @@ class OrderController {
         try {
           const orders = await orderModel
             .find({
-              $or: [
-                { equipment: { $regex: filter, $options: "i" } },
-                { brand: { $regex: filter, $options: "i" } },
-                { model: { $regex: filter, $options: "i" } },
-                { defect: { $regex: filter, $options: "i" } },
-                { observation: { $regex: filter, $options: "i" } },
-                { id: numberId ? numberId : null },
+              $and: [
+                {
+                  $or: [
+                    { equipment: { $regex: filter, $options: "i" } },
+                    { brand: { $regex: filter, $options: "i" } },
+                    { model: { $regex: filter, $options: "i" } },
+                    { defect: { $regex: filter, $options: "i" } },
+                    { observation: { $regex: filter, $options: "i" } },
+                    { id: numberId ? numberId : null },
+                  ],
+                },
+                { deleted: false },
               ],
             })
-            .populate(["status", "services", "orders", "costumer"])
+            .populate(["status", "services", "orders", "customer"])
             .skip((page - 1) * limit)
             .limit(limit)
-            .find()
             .sort({ id: -1 });
 
           const count = await orderModel.estimatedDocumentCount();
@@ -165,7 +169,7 @@ class OrderController {
     if (!id) return res.status(404).json({ message: "Id para a exclusão é obrigátorio" });
 
     try {
-      const order = await orderModel.findByIdAndDelete(id);
+      const order = await orderModel.findByIdAndUpdate(id, { deleted: true });
 
       if (!order) return res.status(404).json({ message: "ordem de serviço não encontrada" });
 
