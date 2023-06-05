@@ -108,7 +108,21 @@ class OrderController {
             .limit(limit)
             .sort({ id: -1 });
 
-          const count = await orderModel.estimatedDocumentCount();
+          const count = await orderModel.countDocuments({
+            $and: [
+              {
+                $or: [
+                  { equipment: { $regex: filter, $options: "i" } },
+                  { brand: { $regex: filter, $options: "i" } },
+                  { model: { $regex: filter, $options: "i" } },
+                  { defect: { $regex: filter, $options: "i" } },
+                  { observation: { $regex: filter, $options: "i" } },
+                  { id: numberId ? numberId : null },
+                ],
+              },
+              { deleted: false },
+            ],
+          });
 
           return { total: count, pageCurrent: Number(page), limitTotal: Number(limit), orders };
         } catch (err: any) {

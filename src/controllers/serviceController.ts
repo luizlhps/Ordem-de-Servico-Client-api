@@ -33,7 +33,7 @@ class Service {
   }
   async deleteService(req: Request, res: Response) {
     try {
-      const service = await serviceModel.findByIdAndDelete(req.params.id);
+      const service = await serviceModel.findByIdAndUpdate(req.params.id, { deleted: true });
       res.status(200).json({ message: "Serviço apagado com sucesso!!" });
     } catch (error) {
       console.warn(error);
@@ -84,25 +84,20 @@ class Service {
         .limit(Number(limit));
 
       const totalCount = await serviceModel.countDocuments({
-        $or: [
-          { title: { $regex: filter, $options: "i" } },
-          { content: { $regex: filter, $options: "i" } },
-          { id: numberId ? numberId : null },
+        $and: [
+          {
+            $or: [
+              { title: { $regex: filter, $options: "i" } },
+              { description: { $regex: filter, $options: "i" } },
+              { id: numberId ? numberId : null },
+            ],
+          },
+          { deleted: false },
         ],
       });
 
       if (service.length < 1) return res.status(404).json("nada encontrado");
       res.status(200).json({ Total: totalCount, Page: Number(page), limit: Number(limit), service });
-    } catch (error) {
-      console.warn(error);
-      res.status(400).send({ message: error });
-    }
-  }
-  async getAll(req: Request, res: Response) {
-    try {
-      const service = await serviceModel.find();
-
-      res.status(200).json(service);
     } catch (error) {
       console.warn(error);
       res.status(400).send({ message: error });

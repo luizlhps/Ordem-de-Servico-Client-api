@@ -200,7 +200,7 @@ class Finance {
   async deleteTransaction(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const transaction = await Transaction.findByIdAndDelete(id);
+      const transaction = await Transaction.findByIdAndUpdate(req.params.id, { deleted: true });
       const checktransactionExists = await Balance.findOne();
       const transactionExists = await Transaction.findOne();
 

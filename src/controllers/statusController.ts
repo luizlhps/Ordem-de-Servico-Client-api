@@ -38,7 +38,12 @@ class StatusControler {
         .limit(Number(limit));
 
       const totalCount = await StatusModel.countDocuments({
-        $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+        $and: [
+          {
+            $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+          },
+          { deleted: false },
+        ],
       });
 
       res.status(200).json({ page: Number(page), limit: Number(limit), total: Number(totalCount), status });
@@ -75,7 +80,7 @@ class StatusControler {
         }
       }
 
-      const status = await StatusModel.findByIdAndDelete(req.params.id);
+      const status = await StatusModel.findByIdAndUpdate(req.params.id, { deleted: true });
       if (!status) return res.status(404).send("Usuário não encontrado.");
       return res.status(200).send("Usuário deletado com sucesso.");
     } catch (error) {

@@ -71,11 +71,16 @@ class CustomerController {
         .exec();
 
       const totalCount = await CostumerModel.countDocuments({
-        $or: [
-          { name: { $regex: filter, $options: "i" } },
-          { phone: filter },
-          { cpfOrCnpj: filter },
-          { id: numberId ? numberId : null },
+        $and: [
+          {
+            $or: [
+              { name: { $regex: filter, $options: "i" } },
+              { phone: filter },
+              { cpfOrCnpj: filter },
+              { id: numberId ? numberId : null },
+            ],
+          },
+          { deleted: false },
         ],
       });
 
@@ -140,7 +145,7 @@ class CustomerController {
     const { id } = req.params;
 
     try {
-      const customer = await CostumerModel.findByIdAndDelete(id);
+      const customer = await CostumerModel.findByIdAndUpdate(req.params.id, { deleted: true });
 
       res.status(200).json({ customer });
     } catch (error) {
