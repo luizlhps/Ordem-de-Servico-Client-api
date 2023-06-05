@@ -16,6 +16,7 @@ mongoose.plugin((schema: any) => {
       if (ret.updatedAt instanceof Date) {
         ret.updatedAt = format(ret.updatedAt, "dd/MM/yyyy HH:mm:ss");
       }
+
       return ret;
     },
   });

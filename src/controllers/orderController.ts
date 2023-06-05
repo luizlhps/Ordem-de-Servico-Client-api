@@ -10,9 +10,9 @@ import { CostumerModel } from "../models/Costomer.model";
 
 class OrderController {
   async createOrder(req: Request, res: Response) {
-    const { equipment, brand, model, defect, services, status, costumer, observation, dateEntry } = req.body;
+    const { equipment, brand, model, defect, services, status, customer, observation, dateEntry } = req.body;
     try {
-      const costumerId = await CostumerModel.findById(costumer);
+      const costumerId = await CostumerModel.findById(customer);
       const statusId = await StatusModel.findById(status);
 
       const validadEerrorsService: string[] = [];
@@ -61,7 +61,7 @@ class OrderController {
         dateEntry,
         services: [],
         status: statusId?._id,
-        costumer: costumerId?._id,
+        customer: costumerId?._id,
       });
 
       const costumerIdObject = new mongoose.Types.ObjectId(costumerId?._id);
@@ -80,9 +80,8 @@ class OrderController {
     }
   }
 
-  async getByIdOrder(req: Request, res: Response) {
+  async getAllOrders(req: Request, res: Response) {
     try {
-      const { id } = req.params;
       const { filter, page = 1, limit = 10 } = req.query;
 
       const getsss = async (page = 1, limit = 5) => {
@@ -96,12 +95,14 @@ class OrderController {
                 { model: { $regex: filter, $options: "i" } },
                 { defect: { $regex: filter, $options: "i" } },
                 { observation: { $regex: filter, $options: "i" } },
+                { id: numberId ? numberId : null },
               ],
             })
             .populate(["status", "services", "orders", "costumer"])
             .skip((page - 1) * limit)
             .limit(limit)
-            .find();
+            .find()
+            .sort({ id: -1 });
 
           const count = await orderModel.estimatedDocumentCount();
 
@@ -155,6 +156,23 @@ class OrderController {
     } catch (error: any) {
       console.error(error);
       return res.status(500).json({ message: "Erro ao obter os pedidos do cliente" });
+    }
+  }
+
+  async deleteOrder(req: Request, res: Response) {
+    const { id } = req.params;
+
+    if (!id) return res.status(404).json({ message: "Id para a exclusão é obrigátorio" });
+
+    try {
+      const order = await orderModel.findByIdAndDelete(id);
+
+      if (!order) return res.status(404).json({ message: "ordem de serviço não encontrada" });
+
+      res.status(200).json({ message: "ordem de serviço apagado com sucesso" });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({ message: "houve um erro ao apagar a ordem de serviço!" });
     }
   }
 }
