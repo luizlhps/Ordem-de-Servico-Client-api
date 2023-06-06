@@ -12,6 +12,9 @@ export interface IOrder extends Document {
   status: Types.ObjectId;
   customer: Types.ObjectId;
   deleted: boolean;
+  amount: number;
+  totalAmount: number;
+  discount: number;
 }
 
 export const ordersCounter = model(
@@ -34,6 +37,11 @@ const orderSchema: Schema<IOrder> = new Schema(
     services: [{ type: Schema.Types.ObjectId, ref: "Service", required: false }],
     status: { type: Schema.Types.ObjectId, ref: "Status", required: false },
     customer: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+
+    amount: { type: Number, required: false, default: 0 },
+    discount: { type: Number, required: false, default: 0 },
+    totalAmount: { type: Number, required: false, default: 0 },
+
     deleted: { type: Boolean, default: false },
   },
   {

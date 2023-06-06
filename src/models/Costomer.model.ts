@@ -38,6 +38,7 @@ const customerSchema = new mongoose.Schema(
       },
     ],
     orders: [{ type: Schema.Types.ObjectId, ref: "Order", required: false }],
+
     deleted: { type: Boolean, default: false },
   },
   { versionKey: false, timestamps: true }

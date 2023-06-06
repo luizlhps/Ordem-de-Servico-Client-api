@@ -5,7 +5,8 @@ interface IService extends Document {
   title: string;
   description: string;
   amount: number;
-  deleted: Boolean;
+  deleted: boolean;
+  version: number;
 }
 
 export const serviceCounter = model(
@@ -25,6 +26,8 @@ export const serviceModel = model<IService>(
       description: { type: String, required: true },
       amount: { type: Number, required: true },
       deleted: { type: Boolean, default: false, required: true },
+
+      version: { type: Number, unique: true },
     },
     {
       timestamps: true,
