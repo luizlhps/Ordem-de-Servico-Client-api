@@ -177,6 +177,35 @@ class OrderController {
     }
   }
 
+  async updateOrder(req: Request, res: Response) {
+    const { equipment, brand, model, defect, observation, dateEntry, services, status, customer } = req.body;
+
+    try {
+      const order = await orderModel.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            equipment: equipment,
+            brand: brand,
+            model: model,
+            defect: defect,
+            observation: observation,
+            dateEntry: dateEntry,
+            services: services,
+            status: status,
+            customer: customer,
+          },
+        },
+        { new: true }
+      );
+
+      res.status(200).json(order);
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({ message: "Ocorreu um Erro ao Atualizar o Registro" });
+    }
+  }
+
   async deleteOrder(req: Request, res: Response) {
     const { id } = req.params;
 
