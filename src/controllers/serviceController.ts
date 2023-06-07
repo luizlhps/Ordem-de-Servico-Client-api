@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { serviceCounter, serviceModel } from "../models/Service.model";
+import { serviceCounter, serviceModel, servicePrice } from "../models/Service.model";
 import { model, Schema } from "mongoose";
 import { counterId } from "../utils/autoIncrementId";
 
@@ -16,6 +16,7 @@ class Service {
     if (!amount) return res.status(400).send({ message: "Valor é necessario" });
 
     const incrementId = (await counterId(serviceCounter)).getNextId;
+
     console.log(amount);
     try {
       const service = await serviceModel.create({

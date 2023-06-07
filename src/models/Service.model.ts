@@ -17,6 +17,16 @@ export const serviceCounter = model(
   })
 );
 
+export const servicePrice = model(
+  "servicePrice",
+  new Schema({
+    id: { type: Number, unique: true },
+    service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
+    price: { type: Number, required: true },
+    order: { type: Schema.Types.ObjectId, ref: "Order", required: true },
+  })
+);
+
 export const serviceModel = model<IService>(
   "Service",
   new Schema(
@@ -26,12 +36,10 @@ export const serviceModel = model<IService>(
       description: { type: String, required: true },
       amount: { type: Number, required: true },
       deleted: { type: Boolean, default: false, required: true },
-
-      version: { type: Number, unique: true },
     },
     {
       timestamps: true,
       versionKey: false,
     }
-  )
+  ).index({ description: 1, title: 1 })
 );

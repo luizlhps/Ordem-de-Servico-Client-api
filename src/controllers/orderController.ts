@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import mongoose, { Types, Schema, Document, Error } from "mongoose";
 import { custom } from "joi";
 import { orderModel, ordersCounter } from "../models/Ordermodel";
-import { serviceModel } from "../models/Service.model";
+import { serviceModel, servicePrice } from "../models/Service.model";
 import { StatusModel } from "../models/Status.model";
 import { ObjectId } from "bson";
 import { counterId } from "../utils/autoIncrementId";
@@ -14,30 +14,7 @@ class OrderController {
     try {
       const costumerId = await CostumerModel.findById(customer);
       const statusId = await StatusModel.findById(status);
-
-      const validadEerrorsService: string[] = [];
-
-      /*       const validatedServices = await Promise.all(
-        services.map(async (serviceId: string) => {
-          if (!mongoose.Types.ObjectId.isValid(serviceId)) {
-            validadEerrorsService.push(`Serviço não é valido: ${serviceId}`);
-            return null;
-          }
-
-          const existingService = await serviceModel.findById(serviceId);
-          if (!existingService) {
-            validadEerrorsService.push(`Serviço não encotrado: ${serviceId}`);
-            return null;
-          }
-
-          return existingService;
-        })
-      )
-      
-      if (validadEerrorsService.length > 0) {
-        res.status(400).json({ message: validadEerrorsService.join("; ") });
-        return;
-      } */
+      const incrementId = (await counterId(ordersCounter)).getNextId;
 
       if (!costumerId) {
         res.status(400).json({ message: "Cliente não encontrado" });
@@ -48,8 +25,6 @@ class OrderController {
         res.status(400).json({ message: "Status não encontrado" });
         return;
       }
-
-      const incrementId = (await counterId(ordersCounter)).getNextId;
 
       const order = await orderModel.create({
         id: await incrementId(),
@@ -85,28 +60,69 @@ class OrderController {
       const { filter, page = 1, limit = 10 } = req.query;
 
       const getsss = async (page = 1, limit = 5) => {
+        console.log("limit:", limit, "page:", page);
         const numberId = Number(filter);
         try {
           const orders = await orderModel
-            .find({
-              $and: [
-                {
-                  $or: [
-                    { equipment: { $regex: filter, $options: "i" } },
-                    { brand: { $regex: filter, $options: "i" } },
-                    { model: { $regex: filter, $options: "i" } },
-                    { defect: { $regex: filter, $options: "i" } },
-                    { observation: { $regex: filter, $options: "i" } },
-                    { id: numberId ? numberId : null },
+            .aggregate([
+              {
+                $match: {
+                  $and: [
+                    {
+                      $or: [
+                        { equipment: { $regex: filter, $options: "i" } },
+                        { brand: { $regex: filter, $options: "i" } },
+                        { model: { $regex: filter, $options: "i" } },
+                        { defect: { $regex: filter, $options: "i" } },
+                        { observation: { $regex: filter, $options: "i" } },
+                        { id: numberId ? numberId : null },
+                      ],
+                    },
+                    /*  { deleted: false }, */
                   ],
                 },
-                { deleted: false },
-              ],
-            })
-            .populate(["status", "services", "orders", "customer"])
+              },
+              /*from: <nome da Coleção onde vamos buscar os dados>,
+              localField: <nome do atributo usado na condição de igualdade, na coleção origem, aqui chamada de Coleção>,
+              foreignField: <nome do atributo usado na condição de igualdade na tabela destino, onde buscaremos os dados>,
+              as: <atributo que receberá os novos dados > */
+              {
+                $lookup: {
+                  from: "serviceprices", // collection selecionada
+                  localField: "_id", // o campo que compara com a coletion serviceprices
+                  foreignField: "order", // campo que vai comparar com o id de cima localfield
+                  as: "servicesPrices", // nome
+                },
+              },
+              {
+                $lookup: {
+                  from: "status",
+                  localField: "status",
+                  foreignField: "_id",
+                  as: "status",
+                },
+              },
+              {
+                $lookup: {
+                  from: "services",
+                  localField: "services",
+                  foreignField: "_id",
+                  as: "services",
+                },
+              },
+              {
+                $lookup: {
+                  from: "customers",
+                  localField: "customer",
+                  foreignField: "_id",
+                  as: "customer",
+                },
+              },
+            ])
             .skip((page - 1) * limit)
             .limit(limit)
             .sort({ id: -1 });
+          /*  .populate(["status", "services", "orders", "customer"]); */
 
           const count = await orderModel.countDocuments({
             $and: [
@@ -179,8 +195,27 @@ class OrderController {
 
   async updateOrder(req: Request, res: Response) {
     const { equipment, brand, model, defect, observation, dateEntry, services, status, customer } = req.body;
-
+    const incrementId = (await counterId(ordersCounter)).getNextId;
     try {
+      /////
+      if (services) {
+        services.map(async (serviceId: string) => {
+          console.log(serviceId);
+          const currentService = await serviceModel.findById(serviceId);
+
+          if (!currentService) return res.status(404).json({ message: "não foi possivel encontrar o serviço" });
+
+          const serviceOrder = await servicePrice.create({
+            id: await incrementId(),
+            service: serviceId,
+            price: currentService.amount,
+            order: req.params.id,
+          });
+        });
+      }
+
+      ///////
+
       const order = await orderModel.findByIdAndUpdate(
         req.params.id,
         {
