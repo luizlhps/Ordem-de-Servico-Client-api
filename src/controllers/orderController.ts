@@ -118,6 +118,8 @@ class OrderController {
                   as: "customer",
                 },
               },
+              { $unwind: "$customer" },
+              { $unwind: "$status" },
             ])
             .skip((page - 1) * limit)
             .limit(limit)
@@ -196,21 +198,49 @@ class OrderController {
   async updateOrder(req: Request, res: Response) {
     const { equipment, brand, model, defect, observation, dateEntry, services, status, customer } = req.body;
     const incrementId = (await counterId(ordersCounter)).getNextId;
+
     try {
+      const orderAlreadyExists = await orderModel.findById(req.params.id);
+      if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
+
       /////
       if (services) {
-        services.map(async (serviceId: string) => {
-          console.log(serviceId);
+        services.forEach(async (serviceId: string) => {
           const currentService = await serviceModel.findById(serviceId);
 
-          if (!currentService) return res.status(404).json({ message: "não foi possivel encontrar o serviço" });
+          if (!currentService) return res.status(404).json({ messaga: "Status não encontrado" });
 
-          const serviceOrder = await servicePrice.create({
-            id: await incrementId(),
-            service: serviceId,
-            price: currentService.amount,
-            order: req.params.id,
+          const ServicePrice = await servicePrice.find({ order: new ObjectId(req.params.id) });
+
+          let flag = false; //indica se o preço foi incluido ou não
+
+          ServicePrice.forEach((object) => {
+            if (object.service.toString() === currentService?._id.toString()) {
+              object.price = currentService.amount;
+
+              flag = true;
+              object.save();
+            }
           });
+
+          if (flag) {
+            if (ServicePrice.length > services.length) {
+              ServicePrice.forEach(async (object) => {
+                if (!serviceId.toString().includes(object.service.toString())) {
+                  await object.deleteOne({ _id: object._id });
+                }
+              });
+            }
+
+            return;
+          } else {
+            const serviceOrder = await servicePrice.create({
+              id: await incrementId(),
+              service: serviceId,
+              price: currentService?.amount,
+              order: req.params.id,
+            });
+          }
         });
       }
 
