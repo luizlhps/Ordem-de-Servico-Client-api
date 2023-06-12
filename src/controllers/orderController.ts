@@ -59,98 +59,96 @@ class OrderController {
     try {
       const { filter, page = 1, limit = 10 } = req.query;
 
-      const getsss = async (page = 1, limit = 5) => {
-        console.log("limit:", limit, "page:", page);
-        const numberId = Number(filter);
-        try {
-          const orders = await orderModel
-            .aggregate([
-              {
-                $match: {
-                  $and: [
-                    {
-                      $or: [
-                        { equipment: { $regex: filter, $options: "i" } },
-                        { brand: { $regex: filter, $options: "i" } },
-                        { model: { $regex: filter, $options: "i" } },
-                        { defect: { $regex: filter, $options: "i" } },
-                        { observation: { $regex: filter, $options: "i" } },
-                        { id: numberId ? numberId : null },
-                      ],
-                    },
-                    /*  { deleted: false }, */
-                  ],
-                },
+      const numberId = Number(filter);
+      try {
+        const count = await orderModel.countDocuments({
+          $and: [
+            {
+              $or: [
+                { equipment: { $regex: filter, $options: "i" } },
+                { brand: { $regex: filter, $options: "i" } },
+                { model: { $regex: filter, $options: "i" } },
+                { defect: { $regex: filter, $options: "i" } },
+                { observation: { $regex: filter, $options: "i" } },
+                { id: numberId ? numberId : null },
+              ],
+            },
+            { deleted: false },
+          ],
+        });
+
+        const orders = await orderModel
+          .aggregate([
+            {
+              $match: {
+                $and: [
+                  {
+                    $or: [
+                      { equipment: { $regex: filter, $options: "i" } },
+                      { brand: { $regex: filter, $options: "i" } },
+                      { model: { $regex: filter, $options: "i" } },
+                      { defect: { $regex: filter, $options: "i" } },
+                      { observation: { $regex: filter, $options: "i" } },
+                      { id: numberId ? numberId : null },
+                    ],
+                  },
+                  { deleted: false },
+                ],
               },
-              /*from: <nome da Coleção onde vamos buscar os dados>,
+            },
+            /*from: <nome da Coleção onde vamos buscar os dados>,
               localField: <nome do atributo usado na condição de igualdade, na coleção origem, aqui chamada de Coleção>,
               foreignField: <nome do atributo usado na condição de igualdade na tabela destino, onde buscaremos os dados>,
               as: <atributo que receberá os novos dados > */
-              {
-                $lookup: {
-                  from: "serviceprices", // collection selecionada
-                  localField: "_id", // o campo que compara com a coletion serviceprices
-                  foreignField: "order", // campo que vai comparar com o id de cima localfield
-                  as: "servicesPrices", // nome
-                },
+            {
+              $lookup: {
+                from: "serviceprices", // collection selecionada
+                localField: "_id", // o campo que compara com a coletion serviceprices
+                foreignField: "order", // campo que vai comparar com o id de cima localfield
+                as: "servicesPrices", // nome
               },
-              {
-                $lookup: {
-                  from: "status",
-                  localField: "status",
-                  foreignField: "_id",
-                  as: "status",
-                },
+            },
+            {
+              $lookup: {
+                from: "status",
+                localField: "status",
+                foreignField: "_id",
+                as: "status",
               },
-              {
-                $lookup: {
-                  from: "services",
-                  localField: "services",
-                  foreignField: "_id",
-                  as: "services",
-                },
+            },
+            {
+              $lookup: {
+                from: "services",
+                localField: "services",
+                foreignField: "_id",
+                as: "services",
               },
-              {
-                $lookup: {
-                  from: "customers",
-                  localField: "customer",
-                  foreignField: "_id",
-                  as: "customer",
-                },
+            },
+            {
+              $lookup: {
+                from: "customers",
+                localField: "customer",
+                foreignField: "_id",
+                as: "customer",
               },
-              { $unwind: "$customer" },
-              { $unwind: "$status" },
-            ])
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .sort({ id: -1 });
-          /*  .populate(["status", "services", "orders", "customer"]); */
+            },
+            { $unwind: "$customer" },
+            { $unwind: "$status" },
+          ])
+          .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+          .limit(Number(limit) === 0 ? count : Number(limit))
+          .sort({ id: -1 });
+        /*  .populate(["status", "services", "orders", "customer"]); */
 
-          const count = await orderModel.countDocuments({
-            $and: [
-              {
-                $or: [
-                  { equipment: { $regex: filter, $options: "i" } },
-                  { brand: { $regex: filter, $options: "i" } },
-                  { model: { $regex: filter, $options: "i" } },
-                  { defect: { $regex: filter, $options: "i" } },
-                  { observation: { $regex: filter, $options: "i" } },
-                  { id: numberId ? numberId : null },
-                ],
-              },
-              { deleted: false },
-            ],
-          });
-
-          return { total: count, pageCurrent: Number(page), limitTotal: Number(limit), orders };
-        } catch (err: any) {
-          throw new Error(err);
-        }
-      };
-
-      const { orders, total, pageCurrent, limitTotal } = await getsss(Number(page), Number(limit));
-
-      res.status(200).json({ Total: total, Page: pageCurrent, limit: limitTotal, orders });
+        res.status(200).json({
+          Total: count,
+          Page: Number(page) === 0 ? 1 : Number(page),
+          limit: Number(limit) === 0 ? count : Number(limit),
+          orders,
+        });
+      } catch (err: any) {
+        throw new Error(err);
+      }
     } catch (error: any) {
       console.warn(error);
       res.status(400).send({ message: error.message });
