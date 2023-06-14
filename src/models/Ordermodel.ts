@@ -7,7 +7,9 @@ export interface IOrder extends Document {
   model: string;
   defect: string;
   observation: string;
+  technicalOpinion: string;
   dateEntry: Date;
+  exitDate: Date;
   services: Types.ObjectId[];
   status: Types.ObjectId;
   customer: Types.ObjectId;
@@ -33,7 +35,9 @@ const orderSchema: Schema<IOrder> = new Schema(
     model: { type: String, required: true },
     defect: { type: String, required: true },
     observation: { type: String, required: false },
+    technicalOpinion: { type: String, required: false },
     dateEntry: { type: Date, required: true },
+    exitDate: { type: Date, required: true },
     services: [{ type: Schema.Types.ObjectId, ref: "Service", required: false }],
     status: { type: Schema.Types.ObjectId, ref: "Status", required: false },
     customer: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
