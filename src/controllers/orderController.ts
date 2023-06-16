@@ -194,7 +194,22 @@ class OrderController {
   }
 
   async updateOrder(req: Request, res: Response) {
-    const { equipment, brand, model, defect, observation, dateEntry, services, status, customer } = req.body;
+    const {
+      equipment,
+      brand,
+      model,
+      defect,
+      observation,
+      dateEntry,
+      services,
+      status,
+      customer,
+      discount,
+      technicalOpinion,
+    } = req.body;
+
+    console.log(technicalOpinion, discount);
+
     const incrementId = (await counterId(ordersCounter)).getNextId;
 
     try {
@@ -209,6 +224,7 @@ class OrderController {
           if (!currentService) return res.status(404).json({ messaga: "Status não encontrado" });
 
           const ServicePrice = await servicePrice.find({ order: new ObjectId(req.params.id) });
+          if (!ServicePrice) return res.status(404).json({ messaga: "serviço não encontrado" });
 
           let flag = false; //indica se o preço foi incluido ou não
 
@@ -252,6 +268,8 @@ class OrderController {
             brand: brand,
             model: model,
             defect: defect,
+            discount: discount,
+            technicalOpinion: technicalOpinion,
             observation: observation,
             dateEntry: dateEntry,
             services: services,

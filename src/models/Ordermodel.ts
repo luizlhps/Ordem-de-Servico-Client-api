@@ -37,7 +37,7 @@ const orderSchema: Schema<IOrder> = new Schema(
     observation: { type: String, required: false },
     technicalOpinion: { type: String, required: false },
     dateEntry: { type: Date, required: true },
-    exitDate: { type: Date, required: true },
+    exitDate: { type: Date, required: false },
     services: [{ type: Schema.Types.ObjectId, ref: "Service", required: false }],
     status: { type: Schema.Types.ObjectId, ref: "Status", required: false },
     customer: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
