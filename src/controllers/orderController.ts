@@ -142,8 +142,8 @@ class OrderController {
 
         res.status(200).json({
           Total: count,
-          Page: Number(page) === 0 ? 1 : Number(page),
-          limit: Number(limit) === 0 ? count : Number(limit),
+          Page: Number(page),
+          limit: Number(limit),
           orders,
         });
       } catch (err: any) {
@@ -199,6 +199,7 @@ class OrderController {
       brand,
       model,
       defect,
+      exitDate,
       observation,
       dateEntry,
       services,
@@ -274,6 +275,7 @@ class OrderController {
             dateEntry: dateEntry,
             services: services,
             status: status,
+            exitDate: exitDate,
             customer: customer,
           },
         },
