@@ -7,6 +7,7 @@ import { StatusModel } from "../models/Status.model";
 import { ObjectId } from "bson";
 import { counterId } from "../utils/autoIncrementId";
 import { CostumerModel } from "../models/Costomer.model";
+import { orderServicePrice } from "./orderController/orderAmount";
 
 class OrderController {
   async createOrder(req: Request, res: Response) {
@@ -209,57 +210,21 @@ class OrderController {
       technicalOpinion,
     } = req.body;
 
-    console.log(technicalOpinion, discount);
-
     const incrementId = (await counterId(ordersCounter)).getNextId;
 
     try {
+      let amountOrder = 0;
+
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
 
       /////
+
       if (services) {
-        services.forEach(async (serviceId: string) => {
-          const currentService = await serviceModel.findById(serviceId);
+        const amount = await orderServicePrice.calculate(req.params.id, services);
 
-          if (!currentService) return res.status(404).json({ messaga: "Status não encontrado" });
-
-          const ServicePrice = await servicePrice.find({ order: new ObjectId(req.params.id) });
-          if (!ServicePrice) return res.status(404).json({ messaga: "serviço não encontrado" });
-
-          let flag = false; //indica se o preço foi incluido ou não
-
-          ServicePrice.forEach((object) => {
-            if (object.service.toString() === currentService?._id.toString()) {
-              object.price = currentService.amount;
-
-              flag = true;
-              object.save();
-            }
-          });
-
-          if (flag) {
-            if (ServicePrice.length > services.length) {
-              ServicePrice.forEach(async (object) => {
-                if (!serviceId.toString().includes(object.service.toString())) {
-                  await object.deleteOne({ _id: object._id });
-                }
-              });
-            }
-
-            return;
-          } else {
-            const serviceOrder = await servicePrice.create({
-              id: await incrementId(),
-              service: serviceId,
-              price: currentService?.amount,
-              order: req.params.id,
-            });
-          }
-        });
+        console.log(amount);
       }
-
-      ///////
 
       const order = await orderModel.findByIdAndUpdate(
         req.params.id,
@@ -277,6 +242,7 @@ class OrderController {
             status: status,
             exitDate: exitDate,
             customer: customer,
+            amount: 40,
           },
         },
         { new: true }
