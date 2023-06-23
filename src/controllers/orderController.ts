@@ -213,8 +213,6 @@ class OrderController {
     const incrementId = (await counterId(ordersCounter)).getNextId;
 
     try {
-      let amountOrder = 0;
-
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
 
