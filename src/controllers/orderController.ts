@@ -195,34 +195,34 @@ class OrderController {
   }
 
   async updateOrder(req: Request, res: Response) {
-    const {
-      equipment,
-      brand,
-      model,
-      defect,
-      exitDate,
-      observation,
-      dateEntry,
-      services,
-      status,
-      customer,
-      discount,
-      technicalOpinion,
-    } = req.body;
-
-    const incrementId = (await counterId(ordersCounter)).getNextId;
-
     try {
+      const {
+        equipment,
+        brand,
+        model,
+        defect,
+        exitDate,
+        observation,
+        dateEntry,
+        services,
+        status,
+        customer,
+        discount,
+        technicalOpinion,
+      } = req.body;
+
+      const incrementId = (await counterId(ordersCounter)).getNextId;
+      const amount = await orderServicePrice.calculate(req.params.id, services);
+
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
 
-      /////
-
-      if (services) {
-        const amount = await orderServicePrice.calculate(req.params.id, services);
-
-        console.log(amount);
-      }
+      const totalAmount = () => {
+        if (discount) {
+          return Number(discount);
+        }
+        return 0;
+      };
 
       const order = await orderModel.findByIdAndUpdate(
         req.params.id,
@@ -240,7 +240,8 @@ class OrderController {
             status: status,
             exitDate: exitDate,
             customer: customer,
-            amount: 40,
+            totalAmount: services ? amount - totalAmount() : 0,
+            amount: services ? amount : 0,
           },
         },
         { new: true }

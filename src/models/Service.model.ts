@@ -20,7 +20,6 @@ export const serviceCounter = model(
 export const servicePrice = model(
   "servicePrice",
   new Schema({
-    id: { type: Number, unique: true },
     service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
     price: { type: Number, required: true },
     order: { type: Schema.Types.ObjectId, ref: "Order", required: true },

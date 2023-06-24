@@ -6,14 +6,15 @@ class OrderServicePrice {
 
     console.log(orderId, services);
 
-    services.forEach(async (serviceId: string) => {
+    for (let serviceId of services) {
       const currentService = await serviceModel.findById(serviceId);
       if (!currentService) throw new Error("Serviço não encontrado");
 
       await this.updateServicePrice(orderId, serviceId, currentService.amount, services.length);
 
-      return (amount += currentService.amount);
-    });
+      console.log(currentService.amount);
+      amount += currentService.amount;
+    }
     return amount;
   }
 
