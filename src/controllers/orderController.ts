@@ -211,8 +211,12 @@ class OrderController {
         technicalOpinion,
       } = req.body;
 
+      const treatedServices = services.filter((falseValues: string) => {
+        return falseValues;
+      });
+
       const incrementId = (await counterId(ordersCounter)).getNextId;
-      const amount = await orderServicePrice.calculate(req.params.id, services);
+      const amount = await orderServicePrice.calculate(req.params.id, treatedServices);
 
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
@@ -223,6 +227,7 @@ class OrderController {
         }
         return 0;
       };
+      console.log("existo");
 
       const order = await orderModel.findByIdAndUpdate(
         req.params.id,
@@ -236,7 +241,7 @@ class OrderController {
             technicalOpinion: technicalOpinion,
             observation: observation,
             dateEntry: dateEntry,
-            services: services,
+            services: treatedServices,
             status: status,
             exitDate: exitDate,
             customer: customer,
