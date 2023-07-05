@@ -227,16 +227,16 @@ class Finance {
   }
 
   async searchTransaction(req: Request, res: Response) {
-    const { query, page = 1, limit = 10 } = req.query;
-    const numberId = Number(query);
+    const { filter, page = 1, limit = 10 } = req.query;
+    const numberId = Number(filter);
 
     try {
       const transaction = await Transaction.find({
         $and: [
           {
             $or: [
-              { title: { $regex: query, $options: "i" } },
-              { description: { $regex: query, $options: "i" } },
+              { title: { $regex: filter, $options: "i" } },
+              { description: { $regex: filter, $options: "i" } },
               { id: numberId ? numberId : null },
             ],
           },
@@ -248,13 +248,13 @@ class Finance {
 
       const totalCount = await Transaction.countDocuments({
         $or: [
-          { title: { $regex: query, $options: "i" } },
-          { content: { $regex: query, $options: "i" } },
+          { title: { $regex: filter, $options: "i" } },
+          { content: { $regex: filter, $options: "i" } },
           { id: numberId ? numberId : null },
         ],
       });
       if (transaction.length < 1) return res.status(404).json("nada encontrado");
-      res.status(200).json({ Total: totalCount, page: Number(page), transaction });
+      res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), transaction });
     } catch (error) {
       console.warn(error);
       res.status(400).send({ message: error });
