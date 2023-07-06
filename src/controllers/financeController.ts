@@ -260,6 +260,16 @@ class Finance {
       res.status(400).send({ message: error });
     }
   }
+  //editar futuramente
+  async balance(req: Request, res: Response) {
+    try {
+      const balance = await Balance.find();
+      res.status(200).send(balance);
+    } catch (error) {
+      res.status(400).send("Ocorreu um Erro Ao buscar o balanço do caixa");
+      console.log(error);
+    }
+  }
 
   async getByIdTransaction(req: Request, res: Response) {
     try {
