@@ -214,10 +214,10 @@ class Finance {
 
         let balance = await Balance.findOne();
         if (balance) {
-          if (oldType === "credit") {
+          if (oldType === "credit" && transactionExists.status === "finished") {
             balance.amount = balance.amount - oldAmount;
             await balance.save();
-          } else if (oldType === "debit") {
+          } else if (oldType === "debit" && transactionExists.status === "finished") {
             balance.amount = balance.amount + oldAmount;
             await balance.save();
           }
