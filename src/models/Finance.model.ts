@@ -13,7 +13,8 @@ export interface ITransaction extends Document {
   status: string;
   order: Schema.Types.ObjectId;
   entryDate: Date;
-  exitDate?: Date;
+  payDay: Date;
+  dueDate?: Date;
   deleted: boolean;
 }
 
@@ -47,7 +48,8 @@ export const Transaction = model<ITransaction>(
       status: { type: String, required: true },
       order: { type: Schema.Types.ObjectId, ref: "Order" },
       entryDate: { type: Date, required: true },
-      exitDate: { type: Date },
+      payDay: { type: Date, required: false },
+      dueDate: { type: Date, required: false },
       deleted: { type: Boolean, default: false },
     },
     { timestamps: true, versionKey: false }

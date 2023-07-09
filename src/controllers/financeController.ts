@@ -99,7 +99,9 @@ class Finance {
   }
 
   async createTransaction(req: Request, res: Response) {
-    const { title, description, amount, type, status, order, entryDate, exitDate } = req.body;
+    const { title, description, amount, type, status, order, entryDate, dueDate, payDay } = req.body;
+
+    console.log(dueDate, payDay);
 
     try {
       //Validação do balanço
@@ -122,7 +124,8 @@ class Finance {
         status,
         order,
         entryDate,
-        exitDate,
+        dueDate,
+        payDay,
       });
 
       //Atualiza o Balanço
@@ -145,7 +148,7 @@ class Finance {
   }
 
   async updateTransaction(req: Request, res: Response) {
-    const { title, description, amount, type, status, order, entryDate, exitDate } = req.body;
+    const { title, description, amount, type, status, order, entryDate, dueDate, payDay } = req.body;
     try {
       const checktransactionExists = await Transaction.findById(req.params.id);
       if (!checktransactionExists) {
@@ -185,7 +188,8 @@ class Finance {
             status: status,
             order: order,
             entryDate: entryDate,
-            exitDate: exitDate,
+            dueDate: dueDate,
+            payDay: payDay,
           },
         },
         { new: true }
@@ -264,7 +268,7 @@ class Finance {
   async balance(req: Request, res: Response) {
     try {
       const balance = await Balance.find();
-      res.status(200).send(balance);
+      res.status(200).send(balance[0]);
     } catch (error) {
       res.status(400).send("Ocorreu um Erro Ao buscar o balanço do caixa");
       console.log(error);
