@@ -280,10 +280,15 @@ class Finance {
         .limit(Number(limit));
 
       const totalCount = await Transaction.countDocuments({
-        $or: [
-          { title: { $regex: filter, $options: "i" } },
-          { content: { $regex: filter, $options: "i" } },
-          { id: numberId ? numberId : null },
+        $and: [
+          {
+            $or: [
+              { title: { $regex: filter, $options: "i" } },
+              { description: { $regex: filter, $options: "i" } },
+              { id: numberId ? numberId : null },
+            ],
+          },
+          { deleted: false },
         ],
       });
       if (transaction.length < 1) return res.status(404).json("nada encontrado");

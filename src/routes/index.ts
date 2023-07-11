@@ -6,3 +6,4 @@ export * from "./route/customersRouter";
 export * from "./route/serviceRouter";
 export * from "./route/orderRouter";
 export * from "./route/passwordRecoveryRouter";
+export * from "./route/dashBoardRouter";

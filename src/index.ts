@@ -26,6 +26,7 @@ import express from "express";
 import {
   adminRouter,
   customerRouter,
+  dashBoardRouter,
   financeRouter,
   orderRouter,
   passowordRecoveryRouter,
@@ -52,5 +53,6 @@ app.use("/finance", financeRouter);
 app.use("/status", statusRouter);
 app.use("/costumers", customerRouter);
 app.use("/services", serviceRouter);
+app.use("/dashboard", dashBoardRouter);
 
 app.listen(port, () => console.log("Porta usada:", port));
