@@ -1,30 +1,59 @@
 import { Request, Response } from "express";
 import { Balance, Transaction } from "../models/Finance.model";
-import { balanceDashBoard } from "./dasboardController/balanceDashboard";
+
+import { amountTotal } from "./dasboardController/amountTotal";
+import { finished } from "stream";
 
 class DasboardController {
+  private async batata(endPreviusMonth: Date, endMonth: Date, startPreviusMonth: Date) {
+    const transactions = await Transaction.find({
+      $and: [
+        {
+          entryDate: {
+            $gte: new Date(endPreviusMonth),
+            $lte: new Date(endMonth),
+          },
+        },
+        { deleted: false },
+      ],
+    });
+
+    const transactionsPreviusMonth = await Transaction.find({
+      $and: [
+        {
+          entryDate: {
+            $gte: new Date(startPreviusMonth),
+            $lte: new Date(endPreviusMonth),
+          },
+        },
+        { deleted: false },
+      ],
+    });
+
+    return { transactions, transactionsPreviusMonth };
+  }
+
   async GetAllInfo(req: Request, res: Response) {
     try {
-      const { filter } = req.query;
-      const filterValidation = ["month", "year"];
-
-      if (typeof filter !== "string") throw new Error("filter precisa ser do tipo string");
-
-      if (!filterValidation.includes(filter)) throw new Error("filter precisa ser do tipo month ou year");
-
       // previous Month - current Month
       const currentDate = new Date();
       const endMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       const endPreviusMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
       const startPreviusMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
 
-      //current year
-      const currentYear = new Date(currentDate.getFullYear(), 0, 1);
-      const endYear = new Date(currentDate.getFullYear(), 11, 31);
+      //transactions
+      const { transactions, transactionsPreviusMonth } = await this.batata(
+        endPreviusMonth,
+        endMonth,
+        startPreviusMonth
+      );
 
-      console.log(endPreviusMonth.toISOString());
-      console.log(startPreviusMonth.toISOString());
-      console.log(endMonth.toISOString());
+      if (!transactions) throw res.status(400).send("Houve um erro ao buscar as transações");
+      if (!transactionsPreviusMonth) {
+        throw res.status(400).send("Houve um erro ao buscar as transações do mês anterior");
+      }
+
+      console.log(endPreviusMonth, endMonth);
 
       const CountTransactions = await Transaction.countDocuments();
       if (!CountTransactions) throw res.status(400).send("Houve um erro ao buscar o total de transações");
@@ -32,108 +61,95 @@ class DasboardController {
       const balance = await Balance.findOne();
       if (!balance) throw res.status(400).send("Houve um erro ao buscar o balanço do caixa");
 
-      if (filter === "month") {
-        const transactions = await Transaction.find({
-          $and: [
-            {
-              entryDate: {
-                $gte: new Date(endPreviusMonth),
-                $lte: new Date(endMonth),
-              },
+      //finished
+      const creditPercetege = amountTotal.calculateCreditPercetegeMonth({
+        transactionsPreviusMonth,
+        transactions,
+        status: "finished",
+      });
+
+      console.log({ credit: creditPercetege });
+
+      const debitPercetege = amountTotal.calculateDebitPercetegeMonth({
+        transactionsPreviusMonth,
+        transactions,
+        status: "finished",
+      });
+
+      console.log({ debit: debitPercetege });
+
+      //pending
+      const creditPercetegePending = amountTotal.calculateCreditPercetegeMonth({
+        transactionsPreviusMonth,
+        transactions,
+        status: "open",
+      });
+
+      console.log({ creditPending: creditPercetegePending });
+
+      const debitPercetegePending = amountTotal.calculateDebitPercetegeMonth({
+        transactionsPreviusMonth,
+        transactions,
+        status: "open",
+      });
+
+      console.log({ debitPending: debitPercetegePending });
+
+      //balance
+      const balancePercetege = amountTotal.calculateBalanceMonth(transactions);
+
+      console.log("balanço", balancePercetege);
+
+      //totalCount
+      const totalCount = creditPercetege.counter.MonthCredit + debitPercetege.counter.MonthDebit;
+      const totalCountPrevMonth = creditPercetege.counter.prevMonthCredit + debitPercetege.counter.prevMonthDebit;
+
+      const totalCountPercentege = amountTotal.calculatePercetege(totalCount, totalCountPrevMonth);
+
+      //data
+      const results = {
+        totalCount: totalCount,
+        totalCountPrevMonth,
+        percetege: totalCountPercentege,
+        balance: balancePercetege,
+        pending: {
+          credit: creditPercetegePending,
+          debit: debitPercetegePending,
+        },
+        finished: {
+          credit: creditPercetege,
+          debit: debitPercetege,
+        },
+      };
+
+      res.status(200).send({ ...results });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async GetAllInfoYear(req: Request, res: Response) {
+    try {
+      const currentDate = new Date();
+
+      //current year
+      const currentYear = new Date(currentDate.getFullYear(), 0, 1);
+      const endYear = new Date(currentDate.getFullYear(), 11, 31);
+
+      const transactions = await Transaction.find({
+        $and: [
+          {
+            entryDate: {
+              $gte: new Date(currentYear),
+              $lte: new Date(endYear),
             },
-            { deleted: false },
-          ],
-        });
+          },
+          { deleted: false },
+        ],
+      });
+      if (!transactions) throw res.status(400).send("Houve um erro ao buscar as transações");
 
-        const transactionsPreviusMonth = await Transaction.find({
-          $and: [
-            {
-              entryDate: {
-                $gte: new Date(startPreviusMonth),
-                $lte: new Date(endPreviusMonth),
-              },
-            },
-            { deleted: false },
-          ],
-        });
-        if (!transactions) throw res.status(400).send("Houve um erro ao buscar as transações");
-        if (!transactionsPreviusMonth) {
-          throw res.status(400).send("Houve um erro ao buscar as transações do mês anterior");
-        }
-
-        //Amount Debit
-        const amountTotalDebitFinishedMonth = transactions.reduce((acc: any, current) => {
-          if (current.type === "debit" && current.status === "finished") {
-            console.log(current);
-            acc += current.amount;
-          }
-          return acc;
-        }, 0);
-
-        //Amount Debit
-        const amountTotalDebitOpenMonth = transactions.reduce((acc: any, current) => {
-          if (current.type === "debit" && current.status === "open") {
-            acc += current.amount;
-          }
-          return acc;
-        }, 0);
-
-        //Amount credit
-        const amountTotalCreditPreviusMonth = transactions.reduce((acc: any, current) => {
-          if (current.type === "credit" && current.status === "finished") {
-            acc += current.amount;
-          }
-          return acc;
-        }, 0);
-
-        console.log(amountTotalDebitFinishedMonth);
-        console.log(amountTotalCreditPreviusMonth);
-
-        //credit
-        const allTransactionsCredit = transactions.filter((item) => {
-          return item.type === "credit";
-        });
-
-        const transactionsPendingsCredit = allTransactionsCredit.filter((item) => {
-          return item.status === "open";
-        });
-
-        const transactionsFinishedsCredit = allTransactionsCredit.filter((item) => {
-          return item.status === "finished";
-        });
-
-        //debit
-        const allTransactionsDebit = transactions.filter((item) => {
-          return item.type == "debit";
-        });
-
-        const transactionsPendingsDebit = allTransactionsDebit.filter((item) => {
-          return item.status === "open";
-        });
-
-        const transactionsFinishedsDebit = allTransactionsDebit.filter((item) => {
-          return item.status === "finished";
-        });
-
-        res.status(200).send(transactions);
-      }
-
-      if (filter === "year") {
-        const transactions = await Transaction.find({
-          $and: [
-            {
-              entryDate: {
-                $gte: new Date(currentYear),
-                $lte: new Date(endYear),
-              },
-            },
-            { deleted: false },
-          ],
-        });
-        if (!transactions) throw res.status(400).send("Houve um erro ao buscar as transações");
-
-        res.status(200).send(transactions);
-      }
+      res.status(200).send(transactions);
     } catch (error) {
       console.log(error);
     }
@@ -141,10 +157,3 @@ class DasboardController {
 }
 
 export const dashboardController = new DasboardController();
-
-//dividas:{ pendentes / finalizados } (porcentagem com base quantidade dividas mes atual - mes anterior / mes anterior)
-//faturamento:{ pendentes / finalizados }
-//quantidade transações : {abertos / fechados}
-//quantidade de novos clientes
-
-//filtros dia / mes / ano

@@ -47,11 +47,6 @@ class Finance {
     oldAmount: number,
     newAmount: number
   ) {
-    //quando o antigo é 101 e coloco o novo 100
-    //mesmo tipo
-    //diferente status
-    //oque deve acontecer é balance.amount += newAmount
-
     if (oldType === newType && status === "finished" && type === "credit" && amountTransaction.status !== "finished") {
       balance.amount += newAmount;
     } else if (status === "finished" && type === "credit" && oldType === newType) {
@@ -98,18 +93,22 @@ class Finance {
   }
 
   async createTransaction(req: Request, res: Response) {
-    const { title, description, amount, type, status, order, entryDate, dueDate, payDay } = req.body;
-
-    console.log(dueDate, payDay);
-
     try {
-      //Validação do balanço
+      const { title, description, amount, type, status, order, entryDate, dueDate, payDay } = req.body;
+
+      console.log(dueDate, payDay);
+
+      //validation balance
       if (type !== "debit" && type !== "credit") {
         return res.status(400).send("o tipo deve ser débito ou crédito");
       }
-      //Validação do status
+      //validation status
       if (status !== "open" && status !== "finished" && status !== "delayed") {
         return res.status(400).send("o status deve ser aberto ou finalizado ou atrasado");
+      }
+
+      if (!type && status === "finished" && !payDay) {
+        return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
       }
 
       const incrementId = (await counterId(counterFinanceModel)).getNextId;
@@ -127,16 +126,17 @@ class Finance {
         payDay,
       });
 
-      //Atualiza o Balanço
+      //update balance
       let balance = await Balance.findOne();
       if (!balance) {
-        balance = await Balance.create({ value: 0 }); // Cria um novo documento na coleção Balance com o saldo inicial
+        //create a new document in the colection 'Balance' with the balance initial
+        balance = await Balance.create({ value: 0 });
       }
 
-      //caso debito é negativo
+      //case debit negative
       let value = amount;
       if (type === "debit" && status === "finished") value = value * -1;
-      if (status === "finished") balance.amount = balance.amount + value; //se a transação for do tipo credito e no caso ele não esteja com status finished eu não quero que ele seja contato no caixa
+      if (status === "finished") balance.amount = balance.amount + value; //if the transaction for the type of credit and case he not with status finished, he not calculete in balance
 
       await balance.save();
       res.status(201).send(transaction);
@@ -154,7 +154,11 @@ class Finance {
         return res.status(404).json({ message: "Transação não encontrada" });
       }
 
-      //atualiza o balance casofun o status seja finalizad e que o tipo seja credito
+      if (!type && status === "finished" && !payDay) {
+        return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
+      }
+
+      //update balance case the status is 'finished' and the type is credit
 
       const amountTransaction = checktransactionExists;
       const oldAmount = checktransactionExists.amount;
@@ -164,7 +168,7 @@ class Finance {
       let balance = await Balance.findOne();
 
       if (balance && newAmount) {
-        //credito
+        //credit
         this.updateCalculateCredit(
           oldType,
           newType,
@@ -176,7 +180,7 @@ class Finance {
           Number(newAmount)
         );
 
-        //debito
+        //debit
         this.updateCalculateDebit(
           oldType,
           newType,
@@ -188,10 +192,10 @@ class Finance {
           Number(newAmount)
         );
 
-        //credito para debito
+        //credit for debit
         this.updateCalculateCreditForDebit(oldType, newType, balance, oldAmount, Number(newAmount));
 
-        //debito para credito
+        //debit for credit
         this.updateCalculateDebitForCredit(oldType, newType, balance, oldAmount, Number(newAmount));
 
         const updataTransaction = await Transaction.findByIdAndUpdate(
@@ -298,7 +302,7 @@ class Finance {
       res.status(400).send({ message: error });
     }
   }
-  //editar futuramente
+  //[]editar futuramente
   async balance(req: Request, res: Response) {
     try {
       const balance = await Balance.find();

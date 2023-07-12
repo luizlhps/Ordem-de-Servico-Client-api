@@ -3,4 +3,4 @@ import { dashboardController } from "../../controllers/dashBoardController";
 
 export const dashBoardRouter = Router();
 
-dashBoardRouter.get("/", dashboardController.GetAllInfo);
+dashBoardRouter.get("/", dashboardController.GetAllInfo.bind(dashboardController));

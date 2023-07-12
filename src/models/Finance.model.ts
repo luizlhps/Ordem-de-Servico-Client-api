@@ -18,6 +18,20 @@ export interface ITransaction extends Document {
   deleted: boolean;
 }
 
+export interface ITransactionProps {
+  id: number;
+  title: string;
+  description: string;
+  amount: number;
+  type: "credit" | "debit";
+  status: string;
+  order: Schema.Types.ObjectId;
+  entryDate: Date;
+  payDay: Date;
+  dueDate?: Date;
+  deleted: boolean;
+}
+
 export const counterFinanceModel = model(
   "CounterFinance",
   new Schema({
