@@ -107,7 +107,7 @@ class Finance {
         return res.status(400).send("o status deve ser aberto ou finalizado ou atrasado");
       }
 
-      if (!type && status === "finished" && !payDay) {
+      if (status === "finished" && !payDay) {
         return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
       }
 
@@ -154,7 +154,7 @@ class Finance {
         return res.status(404).json({ message: "Transação não encontrada" });
       }
 
-      if (!type && status === "finished" && !payDay) {
+      if (status === "finished" && !payDay) {
         return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
       }
 

@@ -107,7 +107,7 @@ class DasboardController {
       const totalCountPercentege = amountTotal.calculatePercetege(totalCount, totalCountPrevMonth);
 
       //data
-      const results = {
+      const dashboard = {
         totalCount: totalCount,
         totalCountPrevMonth,
         percetege: totalCountPercentege,
@@ -122,7 +122,7 @@ class DasboardController {
         },
       };
 
-      res.status(200).send({ ...results });
+      res.status(200).send({ dashboard });
     } catch (error) {
       console.log(error);
     }
