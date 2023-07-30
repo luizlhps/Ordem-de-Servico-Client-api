@@ -5,23 +5,6 @@ import { format } from "date-fns";
 
 config();
 
-mongoose.plugin((schema: any) => {
-  schema.set("toJSON", {
-    getters: true, //transforma os campos dos documentos antes de serem transformados em json, modificar um valor antes de ser retornado.
-    virtuals: false, //campos definidos no esquema setão incluídos no json resultante
-    transform: (doc: any, ret: any) => {
-      if (ret.createdAt instanceof Date) {
-        ret.createdAt = format(ret.createdAt, "dd/MM/yyyy HH:mm:ss");
-      }
-      if (ret.updatedAt instanceof Date) {
-        ret.updatedAt = format(ret.updatedAt, "dd/MM/yyyy HH:mm:ss");
-      }
-
-      return ret;
-    },
-  });
-});
-
 import express from "express";
 import {
   adminRouter,

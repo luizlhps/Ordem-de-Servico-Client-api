@@ -13,7 +13,7 @@ class AmountTotal {
     }
 
     const value = ((quantity - refBase) / refBase) * 100;
-    return value.toFixed(2);
+    return Number(value.toFixed(2));
   }
 
   public calculateCreditPercetegeMonth({ transactionsPreviusMonth, transactions, status }: ITransactionsProps) {
@@ -105,6 +105,7 @@ class AmountTotal {
       percetege: this.calculatePercetege(monthCredit, monthDebit),
       totalAmountCredit: monthCredit,
       totalAmountDebit: monthDebit,
+      totalAmount: monthDebit + monthCredit,
     };
     return calculateCredit;
   }

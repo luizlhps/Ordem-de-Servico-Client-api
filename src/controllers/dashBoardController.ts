@@ -3,9 +3,11 @@ import { Balance, Transaction } from "../models/Finance.model";
 
 import { amountTotal } from "./dasboardController/amountTotal";
 import { finished } from "stream";
+import { orderModel } from "../models/Ordermodel";
+import { StatusModel } from "../models/Status.model";
 
 class DasboardController {
-  private async batata(endPreviusMonth: Date, endMonth: Date, startPreviusMonth: Date) {
+  private async filterTransaction(endPreviusMonth: Date, endMonth: Date, startPreviusMonth: Date) {
     const transactions = await Transaction.find({
       $and: [
         {
@@ -42,7 +44,7 @@ class DasboardController {
       const startPreviusMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
 
       //transactions
-      const { transactions, transactionsPreviusMonth } = await this.batata(
+      const { transactions, transactionsPreviusMonth } = await this.filterTransaction(
         endPreviusMonth,
         endMonth,
         startPreviusMonth
@@ -52,8 +54,6 @@ class DasboardController {
       if (!transactionsPreviusMonth) {
         throw res.status(400).send("Houve um erro ao buscar as transações do mês anterior");
       }
-
-      console.log(endPreviusMonth, endMonth);
 
       const CountTransactions = await Transaction.countDocuments();
       if (!CountTransactions) throw res.status(400).send("Houve um erro ao buscar o total de transações");
@@ -68,15 +68,11 @@ class DasboardController {
         status: "finished",
       });
 
-      console.log({ credit: creditPercetege });
-
       const debitPercetege = amountTotal.calculateDebitPercetegeMonth({
         transactionsPreviusMonth,
         transactions,
         status: "finished",
       });
-
-      console.log({ debit: debitPercetege });
 
       //pending
       const creditPercetegePending = amountTotal.calculateCreditPercetegeMonth({
@@ -85,26 +81,55 @@ class DasboardController {
         status: "open",
       });
 
-      console.log({ creditPending: creditPercetegePending });
-
       const debitPercetegePending = amountTotal.calculateDebitPercetegeMonth({
         transactionsPreviusMonth,
         transactions,
         status: "open",
       });
 
-      console.log({ debitPending: debitPercetegePending });
-
       //balance
       const balancePercetege = amountTotal.calculateBalanceMonth(transactions);
-
-      console.log("balanço", balancePercetege);
 
       //totalCount
       const totalCount = creditPercetege.counter.MonthCredit + debitPercetege.counter.MonthDebit;
       const totalCountPrevMonth = creditPercetege.counter.prevMonthCredit + debitPercetege.counter.prevMonthDebit;
 
       const totalCountPercentege = amountTotal.calculatePercetege(totalCount, totalCountPrevMonth);
+
+      //orders count
+      const statusPending = await StatusModel.findOne({ name: "Aberto" });
+      if (!statusPending) await StatusModel.create({ name: "Aberto" });
+
+      const ordersCountPendingPrevMonth = await orderModel.countDocuments({
+        $and: [
+          {
+            dateEntry: {
+              $gte: new Date(startPreviusMonth),
+              $lte: new Date(endPreviusMonth),
+            },
+          },
+          { status: statusPending?._id },
+          { deleted: false },
+        ],
+      });
+      const ordersCountPending = await orderModel.countDocuments({
+        $and: [
+          { status: statusPending?._id },
+          { deleted: false },
+          {
+            dateEntry: {
+              $gte: new Date(endPreviusMonth),
+              $lte: new Date(endMonth),
+            },
+          },
+        ],
+      });
+
+      const ordersTotalCount = await orderModel.countDocuments({
+        $and: [{ status: statusPending?._id }, { deleted: false }],
+      });
+
+      const orderPercentege = amountTotal.calculatePercetege(ordersCountPending, ordersCountPendingPrevMonth);
 
       //data
       const dashboard = {
@@ -115,6 +140,7 @@ class DasboardController {
         pending: {
           credit: creditPercetegePending,
           debit: debitPercetegePending,
+          orders: { totalCount: ordersTotalCount, percetege: orderPercentege },
         },
         finished: {
           credit: creditPercetege,
@@ -122,7 +148,7 @@ class DasboardController {
         },
       };
 
-      res.status(200).send({ dashboard });
+      res.status(200).send({ ...dashboard, transactions, transactionsPreviusMonth });
     } catch (error) {
       console.log(error);
     }

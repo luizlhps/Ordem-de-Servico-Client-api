@@ -136,14 +136,14 @@ class OrderController {
             { $unwind: "$customer" },
             { $unwind: "$status" },
           ])
+          .sort({ id: -1 })
           .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
-          .limit(Number(limit) === 0 ? count : Number(limit))
-          .sort({ id: -1 });
+          .limit(Number(limit) === 0 ? count : Number(limit));
         /*  .populate(["status", "services", "orders", "customer"]); */
 
         res.status(200).json({
-          Total: count,
-          Page: Number(page),
+          total: count,
+          page: Number(page),
           limit: Number(limit),
           orders,
         });
@@ -167,15 +167,19 @@ class OrderController {
 
       const queryFilter = {
         customer: costumerId,
-        $or: [
-          { equipment: { $regex: filter, $options: "i" } },
-          { brand: { $regex: filter, $options: "i" } },
-          { model: { $regex: filter, $options: "i" } },
-          { defect: { $regex: filter, $options: "i" } },
-          { observation: { $regex: filter, $options: "i" } },
+        $and: [
+          {
+            $or: [
+              { equipment: { $regex: filter, $options: "i" } },
+              { brand: { $regex: filter, $options: "i" } },
+              { model: { $regex: filter, $options: "i" } },
+              { defect: { $regex: filter, $options: "i" } },
+              { observation: { $regex: filter, $options: "i" } },
+            ],
+          },
+          { deleted: true },
         ],
       };
-
       const totalCount = await orderModel.countDocuments({ costumer: costumerId });
 
       // Consulta os pedidos do cliente com a paginação
@@ -185,12 +189,89 @@ class OrderController {
         .limit(Number(limit))
         .populate("services")
         .populate("status")
-        .exec();
+        .populate("customer");
 
       res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), orders });
     } catch (error: any) {
       console.error(error);
       return res.status(500).json({ message: "Erro ao obter os pedidos do cliente" });
+    }
+  }
+
+  async getOrderPending(req: Request, res: Response) {
+    try {
+      const { filter, page = 1, limit = 10 } = req.query;
+
+      const numberId = Number(filter);
+      //orders
+      const statusPending = await StatusModel.findOne({ name: "Aberto" });
+      if (!statusPending) await StatusModel.create({ name: "Aberto" });
+
+      const count = await orderModel.countDocuments({
+        $and: [
+          {
+            $and: [{ status: statusPending?._id }, { deleted: false }],
+          },
+          { deleted: false },
+        ],
+      });
+
+      const orders = await orderModel
+        .aggregate([
+          { $match: { $and: [{ status: statusPending?._id }, { deleted: false }] } },
+          { $sort: { total: -1 } },
+
+          {
+            $lookup: {
+              from: "serviceprices", // collection selecionada
+              localField: "_id", // o campo que compara com a coletion serviceprices
+              foreignField: "order", // campo que vai comparar com o id de cima localfield
+              as: "servicesPrices", // nome
+            },
+          },
+          {
+            $lookup: {
+              from: "status",
+              localField: "status",
+              foreignField: "_id",
+              as: "status",
+            },
+          },
+          {
+            $lookup: {
+              from: "services",
+              localField: "services",
+              foreignField: "_id",
+              as: "services",
+            },
+          },
+          {
+            $lookup: {
+              from: "customers",
+              localField: "customer",
+              foreignField: "_id",
+              as: "customer",
+            },
+          },
+          { $unwind: "$customer" },
+          { $unwind: "$status" },
+        ])
+        .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+        .limit(Number(limit) === 0 ? count : Number(limit))
+        .sort({ id: -1 });
+
+      if (!orders) {
+        throw res.status(404).send("Houve um erro ao buscar as O.S fechadas");
+      }
+      res.status(200).json({
+        total: count,
+        page: Number(page),
+        limit: Number(limit),
+        orders,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(400).json({ message: "Ocorreu um erro ao procurar a O.S" });
     }
   }
 
@@ -220,6 +301,8 @@ class OrderController {
 
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
+      const newCostumer = await CostumerModel.findById(customer);
+      if (!newCostumer) return res.status(404).json({ message: "não foi possivel encontrar o cliente" });
 
       const totalAmount = () => {
         if (discount) {
@@ -228,6 +311,30 @@ class OrderController {
         return 0;
       };
       console.log("existo");
+
+      //retira a ordem de dentro do costumer
+      const orderObjectId = new mongoose.Types.ObjectId(orderAlreadyExists?._id);
+      const costumerOldObject = orderAlreadyExists.customer;
+
+      console.log(orderObjectId);
+      console.log(costumerOldObject);
+      console.log(customer);
+      console.log(newCostumer?._id);
+
+      if (customer !== orderAlreadyExists.customer.toString()) {
+        console.log(customer, orderAlreadyExists.customer);
+        const costumerOldUpdate = await CostumerModel?.updateOne(
+          { _id: costumerOldObject },
+          { $pull: { orders: orderObjectId } }
+        );
+
+        const costumerIdObject = new mongoose.Types.ObjectId(newCostumer?._id);
+
+        const costumerUpdate = await CostumerModel?.updateOne(
+          { _id: costumerIdObject },
+          { $push: { orders: orderObjectId } }
+        );
+      }
 
       const order = await orderModel.findByIdAndUpdate(
         req.params.id,
@@ -263,16 +370,18 @@ class OrderController {
     const { id } = req.params;
 
     if (!id) return res.status(404).json({ message: "Id para a exclusão é obrigátorio" });
-
+    console.log("opaaaaaa");
     try {
-      const order = await orderModel.findByIdAndUpdate(id, { deleted: true });
+      const orderAlreadyExists = await orderModel.findById(req.params.id);
+      if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
 
+      const order = await orderModel.findByIdAndUpdate(id, { deleted: true });
       if (!order) return res.status(404).json({ message: "ordem de serviço não encontrada" });
 
-      res.status(200).json({ message: "ordem de serviço apagado com sucesso" });
+      res.status(200).send({ message: "Ordem de serviço apagado com sucesso" });
     } catch (error) {
       console.log(error);
-      res.status(400).json({ message: "houve um erro ao apagar a ordem de serviço!" });
+      res.status(400).send({ message: "Houve um erro ao apagar a ordem de serviço!" });
     }
   }
 }

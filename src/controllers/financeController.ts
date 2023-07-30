@@ -96,8 +96,6 @@ class Finance {
     try {
       const { title, description, amount, type, status, order, entryDate, dueDate, payDay } = req.body;
 
-      console.log(dueDate, payDay);
-
       //validation balance
       if (type !== "debit" && type !== "credit") {
         return res.status(400).send("o tipo deve ser débito ou crédito");
@@ -106,7 +104,7 @@ class Finance {
       if (status !== "open" && status !== "finished" && status !== "delayed") {
         return res.status(400).send("o status deve ser aberto ou finalizado ou atrasado");
       }
-
+      console.log(payDay);
       if (status === "finished" && !payDay) {
         return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
       }
@@ -235,22 +233,17 @@ class Finance {
       if (checktransactionExists && transaction) {
         const oldAmount = transaction.amount;
         const oldType = transaction.type;
-        console.log(transaction);
         let balance = await Balance.findOne();
         if (balance) {
           if (oldType === "credit" && transaction.status === "finished") {
-            console.log("hihi");
-
             if (balance.amount - oldAmount >= 0) {
               balance.amount = balance.amount - oldAmount;
             } else {
               balance.amount = 0;
             }
 
-            console.log(balance.amount, oldAmount);
             await balance.save();
           } else if (oldType === "debit" && transaction.status === "finished") {
-            console.log("hihi2");
             balance.amount = balance.amount + oldAmount;
             await balance.save();
           }
@@ -280,9 +273,9 @@ class Finance {
           { deleted: false },
         ],
       })
+        .sort({ createdAt: -1 })
         .skip((Number(page) - 1) * Number(limit))
         .limit(Number(limit));
-
       const totalCount = await Transaction.countDocuments({
         $and: [
           {
