@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "../models/User.model";
 
 export interface AuthenticatedRequest extends Request {
   user?: any;
@@ -11,7 +10,7 @@ class Auth {
   async autheticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     const token = req.header("Authorization");
 
-    if (!token) return res.status(401).send("Acesso Negado");
+    if (!token) return res.status(403).send("Acesso Negado");
 
     try {
       const Verified = jwt.verify(token, secret!);
@@ -19,7 +18,7 @@ class Auth {
 
       next();
     } catch (error) {
-      res.status(401).send("acesso negado");
+      res.status(403).send("acesso negado");
     }
   }
 }

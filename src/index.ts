@@ -8,6 +8,8 @@ config();
 import express from "express";
 import {
   adminRouter,
+  authGroupRouter,
+  authPermissionRouter,
   customerRouter,
   dashBoardRouter,
   financeRouter,
@@ -37,5 +39,7 @@ app.use("/status", statusRouter);
 app.use("/costumers", customerRouter);
 app.use("/services", serviceRouter);
 app.use("/dashboard", dashBoardRouter);
+app.use("/authGroup", authGroupRouter);
+app.use("/authPermission", authPermissionRouter);
 
 app.listen(port, () => console.log("Porta usada:", port));

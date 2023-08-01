@@ -7,3 +7,5 @@ export * from "./route/serviceRouter";
 export * from "./route/orderRouter";
 export * from "./route/passwordRecoveryRouter";
 export * from "./route/dashBoardRouter";
+export * from "./route/authGroupRouter";
+export * from "./route/AuthPermissionRouter";
