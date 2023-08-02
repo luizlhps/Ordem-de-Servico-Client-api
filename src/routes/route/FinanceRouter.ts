@@ -8,36 +8,36 @@ export const financeRouter = Express.Router();
 financeRouter.post(
   "/",
   auth.autheticate,
-  authPermissionVerify.update({ parameter: "order" }),
+  authPermissionVerify.create({ parameter: "finance" }),
   finance.createTransaction.bind(finance)
 );
 
 financeRouter.put(
   "/:id",
   auth.autheticate,
-  authPermissionVerify.update({ parameter: "order" }),
+  authPermissionVerify.update({ parameter: "finance" }),
   finance.updateTransaction.bind(finance)
 );
 
 financeRouter.delete(
   "/:id",
   auth.autheticate,
-  authPermissionVerify.update({ parameter: "order" }),
+  authPermissionVerify.delete({ parameter: "finance" }),
   finance.deleteTransaction
 );
 
 financeRouter.get(
   "/",
   auth.autheticate,
-  authPermissionVerify.update({ parameter: "order" }),
+  authPermissionVerify.view({ parameter: "finance" }),
   finance.searchTransaction
 );
 
-financeRouter.get("/balance", auth.autheticate, authPermissionVerify.update({ parameter: "order" }), finance.balance);
+financeRouter.get("/balance", auth.autheticate, authPermissionVerify.view({ parameter: "finance" }), finance.balance);
 
 financeRouter.get(
   "/:id",
   auth.autheticate,
-  authPermissionVerify.update({ parameter: "order" }),
+  authPermissionVerify.view({ parameter: "finance" }),
   finance.searchTransaction
 );
