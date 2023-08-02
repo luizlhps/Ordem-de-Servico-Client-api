@@ -1,7 +1,19 @@
-import Express from "express";
+import Express, { Request, Response } from "express";
 import { auth } from "../../controllers/authController";
+import { authPermissionVerify } from "../../controllers/authPermissionVerify";
+import { IRequest } from "../../types/requestType";
 export const adminRouter = Express.Router();
 
-adminRouter.get("/", auth.autheticate, async (req, res) => {
-  res.json("So pode ser visto pelo adm");
-});
+adminRouter.get(
+  "/",
+  auth.autheticate,
+  authPermissionVerify.create({ parameter: "order" }),
+  async (req: IRequest, res: Response) => {
+    try {
+      res.json("Só pode ser visto pelo adm");
+    } catch (error) {
+      console.log(error);
+    }
+    /*  console.log("aqu", req?.user); */
+  }
+);

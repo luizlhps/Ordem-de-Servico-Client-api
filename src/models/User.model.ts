@@ -1,12 +1,13 @@
 import { any } from "joi";
-import mongoose, { Schema, Document, model } from "mongoose";
+import mongoose, { Schema, Document, model, ObjectId } from "mongoose";
 
-interface IUser extends Document {
+export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
   passwordRecovery: string | null;
   passwordExpire: Date | null;
+  group: ObjectId;
   remember: boolean;
   deleted: boolean;
 }
@@ -17,6 +18,7 @@ export const userSchema = new Schema<IUser>(
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
     deleted: { type: Boolean, default: false },
+    group: { type: Schema.Types.ObjectId, ref: "AuthGroup", required: true },
     remember: Boolean,
     passwordRecovery: String,
     passwordExpire: Date,

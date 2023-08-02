@@ -7,7 +7,7 @@ class AuthPermissionController {
       const { name } = req.body;
       if (!name) throw res.status(500).send("Nome é um campo necessário");
 
-      const authPermission = AuthPermissionModel.create({
+      const authPermission = await AuthPermissionModel.create({
         name,
       });
 

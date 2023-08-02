@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { User } from "../models/User.model";
 
 export interface AuthenticatedRequest extends Request {
   user?: any;
@@ -16,6 +17,9 @@ class Auth {
       const Verified = jwt.verify(token, secret!);
       req.user = Verified;
 
+      const user = await User.findOne({ _id: req.user._id }).populate("group");
+      const permissions = user?.group as any;
+      req.user.group = permissions?.permissions;
       next();
     } catch (error) {
       res.status(403).send("acesso negado");

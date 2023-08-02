@@ -8,9 +8,11 @@ import { ObjectId } from "bson";
 import { counterId } from "../utils/autoIncrementId";
 import { CostumerModel } from "../models/Costomer.model";
 import { orderServicePrice } from "./orderController/orderAmount";
+import { authPermissionVerify } from "./authPermissionVerify";
+import { IRequest } from "../types/requestType";
 
 class OrderController {
-  async createOrder(req: Request, res: Response) {
+  async createOrder(req: IRequest, res: Response) {
     const { equipment, brand, model, defect, services, status, customer, observation, dateEntry } = req.body;
     try {
       const costumerId = await CostumerModel.findById(customer);
@@ -56,7 +58,7 @@ class OrderController {
     }
   }
 
-  async getAllOrders(req: Request, res: Response) {
+  async getAllOrders(req: IRequest, res: Response) {
     try {
       const { filter, page = 1, limit = 10 } = req.query;
 

@@ -1,17 +1,44 @@
 import mongoose, { Schema, model } from "mongoose";
+import { version } from "os";
+
+interface IPermissions {
+  create: [string];
+  deleted: [string];
+  view: [string];
+}
 
 export interface Group {
   name: string;
-  create: Schema.Types.ObjectId;
-  deleted: Schema.Types.ObjectId;
-  view: Schema.Types.ObjectId;
+  permissions: IPermissions;
 }
 
-const authGroupModel = new Schema<Group>({
-  name: { type: String, required: true },
-  create: { type: Schema.Types.ObjectId, ref: "AuthPermission", required: false },
-  deleted: { type: Schema.Types.ObjectId, ref: "AuthPermission", required: false },
-  view: { type: Schema.Types.ObjectId, ref: "AuthPermission", required: false },
-});
+const authGroupModel = new Schema<Group>(
+  {
+    name: { type: String, required: true },
+    permissions: {
+      create: {
+        type: [String],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin"],
+        required: false,
+      },
+      update: {
+        type: [String],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin"],
+        required: false,
+      },
+      deleted: {
+        type: [String],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin"],
+        required: false,
+      },
+      view: {
+        type: [String],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "visitor"],
+        required: false,
+      },
+    },
+  },
+  { timestamps: true, versionKey: false }
+);
 
-export const AuthGroupModel = model("AuthGroupModel", authGroupModel);
+export const AuthGroupModel = model("AuthGroup", authGroupModel);
