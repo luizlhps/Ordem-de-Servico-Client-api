@@ -3,6 +3,8 @@ import { User } from "../models/User.model";
 import bcript from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { loginValidate, registerValidate } from "./validate";
+import { generateTokenProvider } from "../providers/GenerateTokenProvider";
+import { generateRefreshTokenProvider } from "../providers/GenerateRefreshTokenProvider";
 
 interface IExpress {
   req?: Express.Request;
@@ -36,11 +38,12 @@ class UserController {
   }
 
   async login(req: Express.Request, res: Express.Response) {
-    const { error } = loginValidate(req.body);
-    if (error) return res.status(400).send(error.message);
-
     try {
+      const { error } = loginValidate(req.body);
+      if (error) return res.status(400).send(error.message);
+
       const user = await User.findOne({ email: req.body.email }).populate("group");
+
       if (!user) {
         return res.status(400).send("email ou senha incorretos");
       }
@@ -48,19 +51,13 @@ class UserController {
       if (!passwordMatch) {
         return res.status(400).send("email ou senha incorretos");
       }
-
-      const token = jwt.sign({ _id: user._id, group: user.group }, secret!, {
-        expiresIn: "15d",
-      });
-
-      const decoded = jwt.decode(token);
-
-      const permissions = user.group as any;
+      const access_token = await generateTokenProvider.exec(user._id);
+      const refresh_token = await generateRefreshTokenProvider.exec(user._id);
 
       console.log(user);
 
-      res.header("Authorization", token);
-      res.status(200).json({ accessToken: token, permissions: permissions?.permissions });
+      res.header("Authorization", access_token);
+      res.status(200).json({ accessToken: access_token, refreshToken: refresh_token });
     } catch (error) {}
   }
 

@@ -9,12 +9,12 @@ import express from "express";
 import {
   adminRouter,
   authGroupRouter,
-  authPermissionRouter,
   customerRouter,
   dashBoardRouter,
   financeRouter,
   orderRouter,
   passowordRecoveryRouter,
+  refreshTokenRouter,
   serviceRouter,
   statusRouter,
   userRouter,
@@ -40,6 +40,6 @@ app.use("/costumers", customerRouter);
 app.use("/services", serviceRouter);
 app.use("/dashboard", dashBoardRouter);
 app.use("/authGroup", authGroupRouter);
-app.use("/authPermission", authPermissionRouter);
+app.use("/refreshToken", refreshTokenRouter);
 
 app.listen(port, () => console.log("Porta usada:", port));

@@ -2,6 +2,7 @@ import Express, { Request, Response } from "express";
 import { auth } from "../../controllers/authController";
 import { authPermissionVerify } from "../../controllers/authPermissionVerify";
 import { IRequest } from "../../types/requestType";
+import { handleRefreshToken } from "../../controllers/handleRefreshToken";
 export const adminRouter = Express.Router();
 
 adminRouter.get(

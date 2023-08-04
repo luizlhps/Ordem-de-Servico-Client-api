@@ -5,7 +5,12 @@ import { auth } from "../../controllers/authController";
 
 export const customerRouter = Router();
 
-customerRouter.get("/", customerController.getAll);
+customerRouter.get(
+  "/",
+  auth.autheticate,
+  authPermissionVerify.view({ parameter: "customer" }),
+  customerController.getAll
+);
 
 customerRouter.post(
   "/",
@@ -17,20 +22,20 @@ customerRouter.post(
 customerRouter.delete(
   "/:id",
   auth.autheticate,
-  authPermissionVerify.create({ parameter: "customer" }),
+  authPermissionVerify.delete({ parameter: "customer" }),
   customerController.delete
 );
 
 customerRouter.put(
   "/:id",
   auth.autheticate,
-  authPermissionVerify.create({ parameter: "customer" }),
+  authPermissionVerify.update({ parameter: "customer" }),
   customerController.update
 );
 
 customerRouter.get(
   "/:id",
   auth.autheticate,
-  authPermissionVerify.create({ parameter: "customer" }),
+  authPermissionVerify.view({ parameter: "customer" }),
   customerController.getById
 );
