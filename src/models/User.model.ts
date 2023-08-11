@@ -1,16 +1,13 @@
-import { timeStamp } from "console";
-import { any } from "joi";
-import mongoose, { Schema, Document, model, ObjectId } from "mongoose";
+import { Schema, Document, model, ObjectId } from "mongoose";
 
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
   passwordRecovery: string | null;
-  refreshToken: string | null;
   passwordExpire: Date | null;
+  avatar: string | null;
   group: ObjectId;
-  remember: boolean;
   deleted: boolean;
   expiresDate: Date | null;
 }
@@ -22,8 +19,8 @@ export const userSchema = new Schema<IUser>(
     password: { type: String, required: true },
     deleted: { type: Boolean, default: false },
     group: { type: Schema.Types.ObjectId, ref: "AuthGroup", required: true },
+    avatar: { type: String, default: null },
 
-    remember: Boolean,
     passwordRecovery: String,
     passwordExpire: Date,
   },

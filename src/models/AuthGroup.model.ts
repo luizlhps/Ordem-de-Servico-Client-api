@@ -7,12 +7,12 @@ interface IPermissions {
   view: [string];
 }
 
-export interface Group {
+export interface IGroup {
   name: string;
   permissions: IPermissions;
 }
 
-const authGroupModel = new Schema<Group>(
+const authGroupModel = new Schema<IGroup>(
   {
     name: { type: String, required: true },
     permissions: {

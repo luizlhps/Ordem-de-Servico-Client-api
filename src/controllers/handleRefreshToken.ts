@@ -4,6 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { IRefreshToken, RefreshTokenModel } from "../models/RefreshToken.model";
 import { generateTokenProvider } from "../providers/GenerateTokenProvider";
 import { ConstructionOutlined } from "@mui/icons-material";
+import { IUser } from "./userController";
 
 interface GroupPermissions {
   create: string[];
@@ -43,7 +44,6 @@ class HandleRefreshToken {
 
       // Verificar se o refreshToken não expirou
       const secret = process.env.TOKEN_SECRET;
-
       const refreshTokenPayload = jwt.verify(refreshToken, secret!) as IRefreshToken;
 
       const userId = refreshTokenPayload._id;
@@ -51,13 +51,20 @@ class HandleRefreshToken {
 
       if (userId !== userIdDatabase) return res.status(403).send({ message: "Refresh token inválido" });
 
-      //gera um novo acessToken
-      /*   const user = await User.findById(userId); */
-      console.log(refreshTokenPayload);
-
       const accessToken = await generateTokenProvider.exec(refreshTokenObj.userId.toString());
+      const user = (await User.findOne({ _id: userId }).populate("group")) as IUser;
+      if (!user) {
+        return res.status(400).send("email ou senha incorretos");
+      }
 
-      return res.json({ accessToken });
+      const permissions = user.group.permissions;
+      const roles = {
+        _id: user.group._id,
+        name: user.group.name,
+      };
+
+      res.header("Authorization", accessToken);
+      res.status(200).json({ accessToken: accessToken, refreshToken: refreshTokenObj.token, roles, permissions });
     } catch (error) {
       console.log(error);
       return res.status(500).json({ error: "Erro ao gerar novo accessToken" });

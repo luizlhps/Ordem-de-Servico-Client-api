@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-export const registerValidate = (data: any) => {
+export const registerValidate = (data: string) => {
   const schema = Joi.object({
     name: Joi.string().required().min(3).max(50).messages({
       "string.base": "O campo nome deve ser uma string",
@@ -33,7 +33,7 @@ export const registerValidate = (data: any) => {
   return schema.validate(data);
 };
 
-export const loginValidate = (data: any) => {
+export const loginValidate = (data: string) => {
   const schema = Joi.object({
     email: Joi.string().required().min(3).max(50).messages({
       "string.base": "O campo e-mail deve ser uma string",
@@ -54,7 +54,7 @@ export const loginValidate = (data: any) => {
   return schema.validate(data);
 };
 
-export const recoveryPasswordValidate = (data: any) => {
+export const recoveryPasswordValidate = (data: string) => {
   const schema = Joi.object({
     token: Joi.string().required().min(3).max(50).messages({
       "string.base": "O campo token deve ser uma string",

@@ -21,13 +21,17 @@
     "joi": "^17.9.2",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.1.0",
+    "multer": "^1.4.5-lts.1",
     "nodemon": "^2.0.22",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/cors": "^2.8.13",
     "@types/jsonwebtoken": "^9.0.2",
-    "@types/node": "^20.4.6"
+    "@types/multer": "^1.4.7",
+    "@types/node": "^20.4.6",
+    "@types/uuid": "^9.0.2"
   }
 }

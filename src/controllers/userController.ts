@@ -6,9 +6,30 @@ import { loginValidate, registerValidate } from "./validate";
 import { generateTokenProvider } from "../providers/GenerateTokenProvider";
 import { generateRefreshTokenProvider } from "../providers/GenerateRefreshTokenProvider";
 
-interface IExpress {
-  req?: Express.Request;
-  res?: Express.Response;
+export interface IPermission {
+  create: string[];
+  deleted: string[];
+  update: string[];
+  view: string[];
+}
+
+export interface IGroup {
+  permissions: IPermission;
+  _id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+  password: string;
+  deleted: boolean;
+  group: IGroup;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const secret = process.env.TOKEN_SECRET;
@@ -42,8 +63,9 @@ class UserController {
       const { error } = loginValidate(req.body);
       if (error) return res.status(400).send(error.message);
 
-      const user = await User.findOne({ email: req.body.email }).populate("group");
+      const user = (await User.findOne({ email: req.body.email }).populate("group")) as IUser;
 
+      console.log(user);
       if (!user) {
         return res.status(400).send("email ou senha incorretos");
       }
@@ -55,9 +77,14 @@ class UserController {
       const refresh_token = await generateRefreshTokenProvider.exec(user._id);
 
       console.log(user);
+      const permissions = user.group.permissions;
+      const roles = {
+        _id: user.group._id,
+        name: user.group.name,
+      };
 
       res.header("Authorization", access_token);
-      res.status(200).json({ accessToken: access_token, refreshToken: refresh_token });
+      res.status(200).json({ accessToken: access_token, refreshToken: refresh_token, roles, permissions });
     } catch (error) {}
   }
 
@@ -97,6 +124,24 @@ class UserController {
     } catch (error) {
       console.warn(error);
       res.status(500).json({ message: "Erro ao achar a nota" });
+    }
+  }
+
+  async getById(req: Request, res: Response) {
+    const data = req.headers["authorization"];
+    if (!data) return res.status(404).send({ message: "Usuário não encontrado" });
+    const userTokenDecode = jwt.decode(data) as any;
+    if (!userTokenDecode) return res.status(404).send({ message: "Usuário não encontrado" });
+    try {
+      const user = await User.findById({ _id: userTokenDecode._id })
+        .populate("group")
+        .select("-password")
+        .select("-deleted");
+
+      res.status(200).json(user);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Erro ao achar o usuário" });
     }
   }
 }

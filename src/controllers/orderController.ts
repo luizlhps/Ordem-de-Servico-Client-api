@@ -298,7 +298,6 @@ class OrderController {
         return falseValues;
       });
 
-      const incrementId = (await counterId(ordersCounter)).getNextId;
       const amount = await orderServicePrice.calculate(req.params.id, treatedServices);
 
       const orderAlreadyExists = await orderModel.findById(req.params.id);

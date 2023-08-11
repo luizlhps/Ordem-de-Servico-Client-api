@@ -1,7 +1,6 @@
 import { config } from "dotenv";
 import cors from "cors";
-import mongoose from "mongoose";
-import { format } from "date-fns";
+import multer from "multer";
 
 config();
 
@@ -14,6 +13,7 @@ import {
   financeRouter,
   orderRouter,
   passowordRecoveryRouter,
+  photoProfileRouter,
   refreshTokenRouter,
   serviceRouter,
   statusRouter,
@@ -30,6 +30,7 @@ app.use(cors());
 const port = process.env.PORT || 7000;
 app.use(express.json());
 app.use(errorValidation.intanceError);
+app.use("/", photoProfileRouter);
 app.use("/", userRouter);
 app.use("/", passowordRecoveryRouter);
 app.use("/order", orderRouter);
