@@ -9,9 +9,12 @@ class PhotoProfileController {
 
       const user = await User.findById(req.userObj?._id);
       if (!user) return res.status(404).send("Usuário não encontrado");
-      console.log(file);
+      console.log(user);
       const avatar_file = file.filename;
-      res.status(200).json("sucesso");
+
+      user.avatar = avatar_file;
+      user.save();
+      res.status(200).json(user);
       console.log(avatar_file);
     } catch (error) {
       console.log(error);
