@@ -4,7 +4,7 @@ import { photoProfileController } from "../../controllers/photoProfileController
 import { auth } from "../../controllers/authController";
 import uploudConfig from "../../config/uploud";
 
-const uploudAvatar = multer(uploudConfig.uploud("./tmp/avatar"));
+const uploudAvatar = multer(uploudConfig);
 
 export const photoProfileRouter = Router();
 
