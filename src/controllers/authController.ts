@@ -25,6 +25,8 @@ class Auth {
       if (error instanceof TokenExpiredError) {
         return res.status(401).send({ error: true, code: "token.expired", message: "Token inválido." });
       }
+
+      console.log(error);
       res.status(401).json({ error: true, code: "token.invalido", message: "Acesso negado!" });
     }
   }
