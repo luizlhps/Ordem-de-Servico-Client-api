@@ -127,7 +127,7 @@ class UserController {
     }
   }
 
-  async getById(req: Request, res: Response) {
+  async getMyInfo(req: Request, res: Response) {
     const data = req.headers["authorization"];
     if (!data) return res.status(404).send({ message: "Usuário não encontrado" });
     const userTokenDecode = jwt.decode(data) as any;
