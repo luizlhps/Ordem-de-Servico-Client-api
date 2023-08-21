@@ -30,17 +30,21 @@ class AuthGroupController {
       const { name, create, deleted, view, update } = req.body;
       if (!name) return res.status(500).send("Nome é um campo necessário");
       console.log(id);
-      const authGroup = await AuthGroupModel.findByIdAndUpdate(id, {
-        $set: {
-          name,
-          permissions: {
-            create,
-            deleted,
-            update,
-            view,
+      const authGroup = await AuthGroupModel.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            name,
+            permissions: {
+              create,
+              deleted,
+              update,
+              view,
+            },
           },
         },
-      });
+        { new: true }
+      );
 
       if (!authGroup) return res.status(500).send("Ocorreu um erro ao criar um cargo");
       res.status(200).send(authGroup);

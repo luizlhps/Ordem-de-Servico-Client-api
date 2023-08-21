@@ -12,7 +12,7 @@ class PhotoProfileController {
       const avatar_file = file.filename;
 
       //user
-      const user = await User.findById(req.userObj?._id);
+      const user = await User.findById({ _id: req.userObj?._id });
       if (!user) return res.status(404).send("Usuário não encontrado");
 
       //remove case already exist the old in user avatar
@@ -21,8 +21,8 @@ class PhotoProfileController {
       }
       //create file in store
       await storageProvider.save(avatar_file, "avatar", user);
-
-      res.status(200).json(user);
+      await user.save();
+      res.status(200).json("atualizado com sucesso");
     } catch (error) {
       console.log(error);
       res.status(500).send("Houve um erro no servidor");

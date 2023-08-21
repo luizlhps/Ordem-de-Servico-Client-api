@@ -4,6 +4,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  phone: string;
   passwordRecovery: string | null;
   passwordExpire: Date | null;
   avatar: string | null;
@@ -20,6 +21,7 @@ export const userSchema = new Schema<IUser>(
     deleted: { type: Boolean, default: false },
     group: { type: Schema.Types.ObjectId, ref: "AuthGroup", required: true },
     avatar: { type: String, default: null },
+    phone: { type: String, required: true },
 
     passwordRecovery: String,
     passwordExpire: Date,

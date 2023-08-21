@@ -376,7 +376,7 @@ class OrderController {
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
 
-      const order = await orderModel.findByIdAndUpdate(id, { deleted: true });
+      const order = await orderModel.findByIdAndUpdate(id, { deleted: true }, { new: true });
       if (!order) return res.status(404).json({ message: "ordem de serviço não encontrada" });
 
       res.status(200).send({ message: "Ordem de serviço apagado com sucesso" });

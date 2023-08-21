@@ -13,6 +13,12 @@ export interface IPermission {
   view: string[];
 }
 
+interface IInputsUpdate {
+  name: string;
+  email: string;
+  password?: string;
+  phone: string;
+}
 export interface IGroup {
   permissions: IPermission;
   _id: string;
@@ -43,7 +49,7 @@ class UserController {
       const user = new User({
         name: req.body.name,
         email: req.body.email,
-        group: req.body.group,
+        phone: req.body.phone,
         password: bcript.hashSync(req.body.password),
       });
 
@@ -55,6 +61,38 @@ class UserController {
       } else {
         res.status(400).send(error);
       }
+    }
+  }
+
+  async update(req: Express.Request, res: Express.Response) {
+    try {
+      const userID = req.userObj?._id;
+      const updateFields: IInputsUpdate = {
+        name: req.body.name,
+        phone: req.body.phone,
+        email: req.body.email,
+      };
+
+      if (req.body.password) {
+        updateFields.password = bcript.hashSync(req.body.password);
+      }
+      console.log(req.body.name);
+
+      const user = await User.findByIdAndUpdate(
+        userID,
+        {
+          $set: updateFields,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      if (!user) res.status(404).json({ error: true, code: "user.notFound", message: "Usuário não encontrado" });
+      res.status(201).send(user);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).json({ error: true, code: "user.error", message: "Erro ao atualizar o update" });
     }
   }
 
@@ -85,7 +123,9 @@ class UserController {
 
       res.header("Authorization", access_token);
       res.status(200).json({ accessToken: access_token, refreshToken: refresh_token, roles, permissions });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   async getAll(req: Request, res: Response) {

@@ -16,7 +16,7 @@ class LocalhostStorageProvider {
     await fs.promises.rename(oldPath, newPath);
 
     user.avatar = `http://localhost:${process.env.PORT}/${folder}/${file}`;
-    user.save();
+    await user.save();
     return file;
   }
 

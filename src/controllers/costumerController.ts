@@ -145,7 +145,7 @@ class CustomerController {
     const { id } = req.params;
 
     try {
-      const customer = await CostumerModel.findByIdAndUpdate(req.params.id, { deleted: true });
+      const customer = await CostumerModel.findByIdAndUpdate(req.params.id, { deleted: true }, { new: true });
 
       res.status(200).json({ customer });
     } catch (error) {

@@ -11,6 +11,7 @@ class StorageProvider {
         break;
       case "local":
         await localhostStorageProvider.save(file, folder, user);
+        break;
     }
   }
 
@@ -21,6 +22,7 @@ class StorageProvider {
         break;
       case "local":
         await localhostStorageProvider.delete(file, folder);
+        break;
     }
   }
 }

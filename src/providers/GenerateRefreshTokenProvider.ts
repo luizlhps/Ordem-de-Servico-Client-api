@@ -9,12 +9,16 @@ class GenerateRefreshTokenProvider {
 
     const alreadyExistRefreshTokenInDatabase = await RefreshTokenModel.findOne({ userId: userId });
     if (alreadyExistRefreshTokenInDatabase) {
-      await RefreshTokenModel.findByIdAndUpdate(alreadyExistRefreshTokenInDatabase._id, {
-        $set: {
-          userId: userId,
-          token: accessRefreshToken,
+      await RefreshTokenModel.findByIdAndUpdate(
+        alreadyExistRefreshTokenInDatabase._id,
+        {
+          $set: {
+            userId: userId,
+            token: accessRefreshToken,
+          },
         },
-      });
+        { new: true }
+      );
 
       return accessRefreshToken;
     }

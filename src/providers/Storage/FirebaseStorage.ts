@@ -28,34 +28,36 @@ class FirebaseStorageProvider {
 
   async save(file: string, folder: string, user: IUser) {
     const oldPath = resolve(`${uploud.tmpFolder}/${file}`);
-    const bucket = admin.storage().bucket();
 
-    const fileFirebase = bucket.file(`${folder}/${file}`);
-    const fileBuffer = await fs.promises.readFile(oldPath);
-    const contentType = getType(oldPath);
+    return new Promise(async (resolve, reject) => {
+      const bucket = admin.storage().bucket();
 
-    const stream = fileFirebase.createWriteStream({
-      metadata: {
-        contentType: contentType,
-      },
+      const fileFirebase = bucket.file(`${folder}/${file}`);
+      const fileBuffer = await fs.promises.readFile(oldPath);
+      const contentType = getType(oldPath);
+
+      const stream = fileFirebase.createWriteStream({
+        metadata: {
+          contentType: contentType,
+        },
+      });
+
+      stream.on("error", (e) => {
+        console.log(e);
+        throw { error: true, code: "error.uploud", message: "Houve um erro ao enviar o arquivo." };
+      });
+
+      stream.on("finish", async () => {
+        //torna o arquivo publico
+        await bucket.makePublic();
+
+        user.avatar = `https://storage.googleapis.com/${bucket.name}/${folder}/${file}`;
+        await user.save();
+        resolve(file);
+      });
+
+      stream.end(fileBuffer);
     });
-
-    stream.on("error", (e) => {
-      console.log(e);
-      throw { error: true, code: "error.uploud", message: "Houve um erro ao enviar o arquivo." };
-    });
-    stream.on("finish", async () => {
-      //torna o arquivo publico
-      await bucket.makePublic();
-
-      //obtem a url
-      user.avatar = `https://storage.googleapis.com/${bucket.name}/${folder}/${file}`;
-      user.save();
-    });
-
-    stream.end(fileBuffer);
-
-    return file;
   }
 
   async delete(file: string, folder: string) {
@@ -63,7 +65,7 @@ class FirebaseStorageProvider {
 
     const urlPath = file.replace("https://storage.googleapis.com/loustech-site.appspot.com/", "");
 
-    bucket
+    await bucket
       .file(urlPath)
       .delete()
 
