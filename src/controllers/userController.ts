@@ -76,7 +76,6 @@ class UserController {
       if (req.body.password) {
         updateFields.password = bcript.hashSync(req.body.password);
       }
-      console.log(req.body.name);
 
       const user = await User.findByIdAndUpdate(
         userID,

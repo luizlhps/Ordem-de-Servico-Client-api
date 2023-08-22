@@ -4,15 +4,12 @@ class OrderServicePrice {
   public async calculate(orderId: string, services: any): Promise<number> {
     let amount = 0;
 
-    console.log(orderId, services);
-
     for (let serviceId of services) {
       const currentService = await serviceModel.findById(serviceId);
       if (!currentService) throw new Error("Serviço não encontrado");
 
       await this.updateServicePrice(orderId, serviceId, currentService.amount, services.length);
 
-      console.log(currentService.amount);
       amount += currentService.amount;
     }
     return amount;
@@ -29,8 +26,6 @@ class OrderServicePrice {
 
     if (existingServicePrice) {
       existingServicePrice.forEach((servicePrice) => {
-        console.log("aqui", servicePrice.service.toString(), serviceId);
-
         if (servicePrice.service.toString() === serviceId) {
           flag = true;
           servicePrice.save();

@@ -36,9 +36,7 @@ class AuthPermissionVerify {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
       const permissions = user?.group as any;
 
-      console.log(permissions?.permissions);
       if (!permissions?.permissions?.view?.includes(parameter)) {
-        console.log(permissions?.permissions?.view);
         return res.status(403).send("Acesso não autorizadso!");
       }
       next();

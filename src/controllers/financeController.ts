@@ -104,7 +104,6 @@ class Finance {
       if (status !== "open" && status !== "finished" && status !== "delayed") {
         return res.status(400).send("o status deve ser aberto ou finalizado ou atrasado");
       }
-      console.log(payDay);
       if (status === "finished" && !payDay) {
         return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
       }

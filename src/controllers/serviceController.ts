@@ -8,7 +8,6 @@ class Service {
     const { title, description, amount } = req.body;
 
     const isValid = /^\d+(\.\d{1,2})?$/.test(amount.toString());
-    console.log(isValid);
 
     if (!isValid) return res.status(400).json({ message: "O número após o ponto deve ter no máximo 2 dígitos.." });
     if (!title) return res.status(400).send({ message: "Título é necessario" });
@@ -17,7 +16,6 @@ class Service {
 
     const incrementId = (await counterId(serviceCounter)).getNextId;
 
-    console.log(amount);
     try {
       const service = await serviceModel.create({
         id: await incrementId(),

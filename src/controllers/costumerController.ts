@@ -113,7 +113,6 @@ class CustomerController {
       address.forEach((item: IAddress) => {
         requiredFields.forEach((field: any) => {
           if (!item.hasOwnProperty(field)) {
-            console.log(field);
             throw new Error(`O campo de endereço : '${field}' é requirido`);
           }
         });

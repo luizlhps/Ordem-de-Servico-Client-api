@@ -50,7 +50,6 @@ class OrderController {
         { $push: { orders: orderIdObject } }
       );
 
-      console.log(new ObjectId(costumerId._id));
       res.status(200).json({ order });
     } catch (error) {
       console.warn(error);
@@ -311,19 +310,12 @@ class OrderController {
         }
         return 0;
       };
-      console.log("existo");
 
       //retira a ordem de dentro do costumer
       const orderObjectId = new mongoose.Types.ObjectId(orderAlreadyExists?._id);
       const costumerOldObject = orderAlreadyExists.customer;
 
-      console.log(orderObjectId);
-      console.log(costumerOldObject);
-      console.log(customer);
-      console.log(newCostumer?._id);
-
       if (customer !== orderAlreadyExists.customer.toString()) {
-        console.log(customer, orderAlreadyExists.customer);
         const costumerOldUpdate = await CostumerModel?.updateOne(
           { _id: costumerOldObject },
           { $pull: { orders: orderObjectId } }
@@ -371,7 +363,6 @@ class OrderController {
     const { id } = req.params;
 
     if (!id) return res.status(404).json({ message: "Id para a exclusão é obrigátorio" });
-    console.log("opaaaaaa");
     try {
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });

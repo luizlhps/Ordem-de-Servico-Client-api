@@ -5,7 +5,6 @@ const connectDatabase = async () => {
 
   try {
     await mongoose.connect(url, {});
-    console.log("Conectado ao MongoDB");
 
     // Aqui você pode definir os seus models e esquemas
   } catch (error: any) {

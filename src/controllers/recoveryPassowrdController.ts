@@ -39,8 +39,6 @@ class PasswordRecovery {
         if (user.passwordExpire < new Date(Date.now())) return res.status(400).send({ message: "Tempo Expirado" });
       }
 
-      console.log(password);
-
       user.password = bcript.hashSync(password);
       user.passwordExpire = null;
       user.passwordRecovery = null;

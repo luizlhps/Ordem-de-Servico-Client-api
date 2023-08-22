@@ -29,7 +29,6 @@ class AuthGroupController {
       const { id } = req.params;
       const { name, create, deleted, view, update } = req.body;
       if (!name) return res.status(500).send("Nome é um campo necessário");
-      console.log(id);
       const authGroup = await AuthGroupModel.findByIdAndUpdate(
         id,
         {
