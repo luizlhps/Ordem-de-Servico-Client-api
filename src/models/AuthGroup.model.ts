@@ -18,22 +18,33 @@ const authGroupModel = new Schema<IGroup>(
     permissions: {
       create: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin"],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "adminMaster"],
         required: false,
       },
       update: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin"],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "adminMaster"],
         required: false,
       },
       deleted: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin"],
+        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "adminMaster"],
         required: false,
       },
       view: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "visitor"],
+        enum: [
+          "dashboard",
+          "customer",
+          "finance",
+          "order",
+          "status",
+          "services",
+          "user",
+          "admin",
+          "adminMaster",
+          "visitor",
+        ],
         required: false,
       },
     },

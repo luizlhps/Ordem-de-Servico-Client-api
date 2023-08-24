@@ -1,10 +1,11 @@
 import Express, { Request, Response } from "express";
-import { User } from "../models/User.model";
+import { User, UserCounter } from "../models/User.model";
 import bcript from "bcryptjs";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { loginValidate, registerValidate } from "./validate";
 import { generateTokenProvider } from "../providers/GenerateTokenProvider";
 import { generateRefreshTokenProvider } from "../providers/GenerateRefreshTokenProvider";
+import { counterId } from "../utils/autoIncrementId";
 
 export interface IPermission {
   create: string[];
@@ -45,8 +46,9 @@ class UserController {
     const { error } = registerValidate(req.body);
     try {
       if (error) return res.status(400).send(error.message);
-
+      const incrementId = (await counterId(UserCounter)).getNextId();
       const user = new User({
+        id: incrementId,
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,

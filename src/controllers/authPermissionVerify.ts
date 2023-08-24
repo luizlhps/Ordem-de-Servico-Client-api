@@ -12,7 +12,7 @@ class AuthPermissionVerify {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
       const permissions = user?.group as any;
 
-      if (!permissions?.permissions?.create?.includes(parameter)) {
+      if (!permissions?.permissions?.create?.includes(parameter || "adminMaster")) {
         return res.status(403).send("Acesso não autorizado!");
       }
       next();
@@ -24,7 +24,7 @@ class AuthPermissionVerify {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
       const permissions = user?.group as any;
 
-      if (!permissions?.permissions?.update?.includes(parameter)) {
+      if (!permissions?.permissions?.update?.includes(parameter || "adminMaster")) {
         return res.status(403).send("Acesso não autorizado!");
       }
       next();
@@ -36,7 +36,7 @@ class AuthPermissionVerify {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
       const permissions = user?.group as any;
 
-      if (!permissions?.permissions?.view?.includes(parameter)) {
+      if (!permissions?.permissions?.view?.includes(parameter || "adminMaster")) {
         return res.status(403).send("Acesso não autorizadso!");
       }
       next();
@@ -48,7 +48,7 @@ class AuthPermissionVerify {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
       const permissions = user?.group as any;
 
-      if (!permissions?.permissions?.deleted?.includes(parameter)) {
+      if (!permissions?.permissions?.deleted?.includes(parameter || "adminMaster")) {
         return res.status(403).send("Acesso não autorizado!");
       }
       next();

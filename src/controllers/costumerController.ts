@@ -111,7 +111,7 @@ class CustomerController {
 
       const requiredFields = ["cep", "state", "neighborhood", "street", "city", "number"];
       address.forEach((item: IAddress) => {
-        requiredFields.forEach((field: any) => {
+        requiredFields.forEach((field: string) => {
           if (!item.hasOwnProperty(field)) {
             throw new Error(`O campo de endereço : '${field}' é requirido`);
           }

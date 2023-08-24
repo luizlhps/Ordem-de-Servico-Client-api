@@ -10,20 +10,21 @@ export interface IStorageAddress {
   number: string;
 }
 
-export interface IStorageSchema {
+export interface IStoreSchema {
   name: string;
   cnpj: string;
   phone: string;
   telephone: string;
   address: IStorageAddress;
   aplicationConfigurate: boolean;
+  alreadyExistAdmin: boolean;
 }
 
-const storageSchema = new Schema<IStorageSchema>({
+const storeSchema = new Schema<IStoreSchema>({
   name: { type: String, require: true },
   cnpj: { type: String, require: true },
   phone: { type: String, require: true },
-  telephone: { type: String, require: true },
+  telephone: { type: String, require: false },
   address: {
     cep: { type: String, required: true },
     state: { type: String, required: true },
@@ -35,6 +36,7 @@ const storageSchema = new Schema<IStorageSchema>({
   },
 
   aplicationConfigurate: { type: Boolean, default: false },
+  alreadyExistAdmin: { type: Boolean, default: false },
 });
 
-export const StorageModel = model("StorageModel", storageSchema);
+export const StoreModel = model("StoreModel", storeSchema);

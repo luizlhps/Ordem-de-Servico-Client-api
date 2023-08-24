@@ -1,6 +1,8 @@
+import { Numbers } from "@mui/icons-material";
 import { Schema, Document, model, ObjectId } from "mongoose";
 
 export interface IUser extends Document {
+  id: number;
   name: string;
   email: string;
   password: string;
@@ -13,8 +15,16 @@ export interface IUser extends Document {
   expiresDate: Date | null;
 }
 
+export const userCounterSchema = new Schema({
+  _id: { type: String, required: true },
+  seq_value: { type: Number, default: 0 },
+});
+
+export const UserCounter = model("UserCounter", userCounterSchema);
+
 export const userSchema = new Schema<IUser>(
   {
+    id: { type: Number, required: true },
     name: { type: String, required: true },
     email: { type: String, unique: true, required: true },
     password: { type: String, required: true },
