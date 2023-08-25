@@ -102,11 +102,11 @@ class ConfigApplication {
 
       //Create Group Permissions
       const authGroupId = async () => {
-        const authGroupAlreadyExist = await AuthGroupModel.findOne();
+        const authGroupAlreadyExist = await AuthGroupModel.findOne({ name: "adminMaster" });
 
         if (!authGroupAlreadyExist) {
           const authGroup = await AuthGroupModel.create({
-            name: "admin",
+            name: "adminMaster",
             permissions: {
               create: ["adminMaster"],
               deleted: ["adminMaster"],

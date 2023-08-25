@@ -110,6 +110,7 @@ class OrderController {
                 as: "servicesPrices", // nome
               },
             },
+
             {
               $lookup: {
                 from: "status",
@@ -118,6 +119,7 @@ class OrderController {
                 as: "status",
               },
             },
+
             {
               $lookup: {
                 from: "services",
@@ -126,6 +128,7 @@ class OrderController {
                 as: "services",
               },
             },
+
             {
               $lookup: {
                 from: "customers",
@@ -134,6 +137,7 @@ class OrderController {
                 as: "customer",
               },
             },
+
             { $unwind: "$customer" },
             { $unwind: "$status" },
           ])
@@ -206,7 +210,12 @@ class OrderController {
       const numberId = Number(filter);
       //orders
       const statusPending = await StatusModel.findOne({ name: "Aberto" });
-      if (!statusPending) await StatusModel.create({ name: "Aberto" });
+      if (!statusPending)
+        return res.status(500).send({
+          error: true,
+          code: "orderView.statusNotExist",
+          message: "Não existe o status Aberto no banco de dados",
+        });
 
       const count = await orderModel.countDocuments({
         $and: [

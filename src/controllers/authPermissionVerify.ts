@@ -9,10 +9,12 @@ interface IParameter {
 class AuthPermissionVerify {
   create({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
+      console.log();
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const permissions = user?.group as any;
+      const { permissions } = user?.group as any;
 
-      if (!permissions?.permissions?.create?.includes(parameter || "adminMaster")) {
+      if (!permissions?.create?.includes(parameter)) {
+        if (permissions?.create?.includes("adminMaster")) return next();
         return res.status(403).send("Acesso não autorizado!");
       }
       next();
@@ -22,9 +24,10 @@ class AuthPermissionVerify {
   update({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const permissions = user?.group as any;
+      const { permissions } = user?.group as any;
 
-      if (!permissions?.permissions?.update?.includes(parameter || "adminMaster")) {
+      if (!permissions?.update?.includes(parameter)) {
+        if (!permissions?.update?.includes("adminMaster")) return next();
         return res.status(403).send("Acesso não autorizado!");
       }
       next();
@@ -34,9 +37,10 @@ class AuthPermissionVerify {
   view({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const permissions = user?.group as any;
+      const { permissions } = user?.group as any;
 
-      if (!permissions?.permissions?.view?.includes(parameter || "adminMaster")) {
+      if (!permissions?.view?.includes(parameter)) {
+        if (permissions?.view?.includes("adminMaster")) return next();
         return res.status(403).send("Acesso não autorizadso!");
       }
       next();
@@ -46,9 +50,10 @@ class AuthPermissionVerify {
   delete({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const permissions = user?.group as any;
+      const { permissions } = user?.group as any;
 
-      if (!permissions?.permissions?.deleted?.includes(parameter || "adminMaster")) {
+      if (!permissions?.deleted?.includes(parameter)) {
+        if (permissions?.deleted?.includes("adminMaster")) return next();
         return res.status(403).send("Acesso não autorizado!");
       }
       next();

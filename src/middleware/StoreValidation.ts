@@ -2,26 +2,31 @@ import { NextFunction, Request, Response } from "express";
 import { StoreModel } from "../models/store.model";
 
 class StoreValidation {
+  systemAlreadyConfig: boolean | null = null;
+
+  private async checkSystemConfig(res: Response) {
+    if (this.systemAlreadyConfig === null) {
+      const storage = await StoreModel.findOne();
+      if (!storage) {
+        return res
+          .status(401)
+          .json({ error: true, code: "system.notConfig.store", message: "Configure o sistema antes de prosseguir" });
+      }
+      this.systemAlreadyConfig = storage?.aplicationConfigurate === true ? true : false;
+
+      if (storage.alreadyExistAdmin === false) {
+        return res
+          .status(401)
+          .json({ error: true, code: "system.notConfig.userAdmin", message: "O admin master não existe" });
+      }
+    }
+  }
+
   async exec(req: Request, res: Response, next: NextFunction) {
     try {
-      let systemAlreadyConfig = false;
+      console.log(this);
+      this.checkSystemConfig(res);
 
-      if (!systemAlreadyConfig) {
-        const storage = await StoreModel.findOne();
-        if (!storage) {
-          return res
-            .status(401)
-            .json({ error: true, code: "system.notConfig", message: "Configure o sistema antes de prosseguir" });
-        }
-        systemAlreadyConfig = storage?.aplicationConfigurate === true ? true : false;
-
-        if (storage.alreadyExistAdmin === false) {
-          return res
-            .status(401)
-            .json({ error: true, code: "system.notExistAdmin", message: "O admin master não existe" });
-        }
-      }
-      console.log("aaaa");
       next();
     } catch (error) {
       console.log(error);
