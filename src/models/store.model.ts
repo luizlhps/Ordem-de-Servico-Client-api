@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
 export interface IStorageAddress {
   cep: string;
@@ -10,7 +10,7 @@ export interface IStorageAddress {
   number: string;
 }
 
-export interface IStoreSchema {
+export interface IStoreSchema extends Document {
   name: string;
   cnpj: string;
   phone: string;
@@ -18,6 +18,7 @@ export interface IStoreSchema {
   address: IStorageAddress;
   aplicationConfigurate: boolean;
   alreadyExistAdmin: boolean;
+  avatar: string;
 }
 
 const storeSchema = new Schema<IStoreSchema>({
@@ -34,7 +35,7 @@ const storeSchema = new Schema<IStoreSchema>({
     number: { type: String, required: true },
     complement: String,
   },
-
+  avatar: { type: String, default: null },
   aplicationConfigurate: { type: Boolean, default: false },
   alreadyExistAdmin: { type: Boolean, default: false },
 });

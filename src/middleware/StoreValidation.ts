@@ -12,20 +12,27 @@ class StoreValidation {
           .status(401)
           .json({ error: true, code: "system.notConfig.store", message: "Configure o sistema antes de prosseguir" });
       }
-      this.systemAlreadyConfig = storage?.aplicationConfigurate === true ? true : false;
+
+      if (storage.aplicationConfigurate === false) {
+        return res
+          .status(401)
+          .json({ error: true, code: "system.notConfig.store", message: "Configure o sistema antes de prosseguir" });
+      }
 
       if (storage.alreadyExistAdmin === false) {
         return res
           .status(401)
           .json({ error: true, code: "system.notConfig.userAdmin", message: "O admin master não existe" });
       }
+      this.systemAlreadyConfig = storage?.aplicationConfigurate === true ? true : false;
     }
+    console.log(this.systemAlreadyConfig);
   }
 
   async exec(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log(this);
-      this.checkSystemConfig(res);
+      console.log("batata");
+      await this.checkSystemConfig(res);
 
       next();
     } catch (error) {

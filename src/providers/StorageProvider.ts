@@ -2,9 +2,10 @@ import { Response } from "express";
 import { firebaseStorageProvider } from "./Storage/FirebaseStorage";
 import { localhostStorageProvider } from "./Storage/LocalStoarage";
 import { IUser } from "../models/User.model";
+import { IStoreSchema } from "../models/store.model";
 
 class StorageProvider {
-  async save(file: string, folder: string, user: IUser) {
+  async save(file: string, folder: string, user: IUser | IStoreSchema) {
     switch (process.env.DISK) {
       case "firebase":
         await firebaseStorageProvider.save(file, folder, user);

@@ -9,5 +9,5 @@ export * from "./route/passwordRecoveryRouter";
 export * from "./route/dashBoardRouter";
 export * from "./route/authGroupRouter";
 export * from "./route/refreshTokenRouter";
-export * from "./route/photoProfileRouter";
+export * from "./route/photoRouter";
 export * from "./route/configApplicationRouter";

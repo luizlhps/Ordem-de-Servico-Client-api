@@ -26,7 +26,6 @@ class ConfigApplication {
           .status(401)
           .send({ error: true, code: "system.AlreadyConfig.Store", message: "O store ja esta configurado." });
       }
-
       //Create status
       const incrementIDStatus = (await counterId(counterFinanceModel)).getNextId();
       console.log(await incrementIDStatus);
@@ -121,7 +120,6 @@ class ConfigApplication {
       };
 
       //Create User info
-
       const incrementIDUser = (await counterId(UserCounter)).getNextId();
 
       const userAdmin = await User.create({
@@ -135,7 +133,7 @@ class ConfigApplication {
 
       (already.alreadyExistAdmin = true), already.save();
 
-      return res.status(201).send(userAdmin);
+      return res.status(201).send(userAdmin._id);
     } catch (error) {
       console.log(error);
       res.status(401).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o admin master" });

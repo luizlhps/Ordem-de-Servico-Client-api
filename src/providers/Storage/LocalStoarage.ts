@@ -3,13 +3,14 @@ import { getType } from "mime";
 import uploud, { tmpFolder } from "../../config/uploud";
 import { resolve } from "path";
 import { IUser } from "../../models/User.model";
+import { IStoreSchema } from "../../models/store.model";
 
 class LocalhostStorageProvider {
   private path = (file: string, folder: string) => {
     return resolve(`${uploud.tmpFolder}/${folder}`, file);
   };
 
-  async save(file: string, folder: string, user: IUser) {
+  async save(file: string, folder: string, user: IUser | IStoreSchema) {
     const oldPath = resolve(`${uploud.tmpFolder}/${file}`);
     const newPath = resolve(this.path(file, folder));
 

@@ -14,7 +14,7 @@ import {
   financeRouter,
   orderRouter,
   passowordRecoveryRouter,
-  photoProfileRouter,
+  photoRouter,
   refreshTokenRouter,
   serviceRouter,
   statusRouter,
@@ -32,13 +32,14 @@ app.use(cors());
 const port = process.env.PORT || 7000;
 app.use(express.json());
 app.use(errorValidation.intanceError);
-app.use("/install", (req, res, next) => {
-  if (req.path === "/store" || req.path === "/userAdmin") {
+app.use((req, res, next) => {
+  if (req.path === "/install/store" || req.path === "/install/userAdmin") {
     return next();
   }
+
   storeValidation.exec(req, res, next);
 });
-app.use("/", photoProfileRouter);
+app.use("/", photoRouter);
 app.use("/", userRouter);
 app.use("/", passowordRecoveryRouter);
 app.use("/order", orderRouter);
