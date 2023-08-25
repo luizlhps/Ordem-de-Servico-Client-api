@@ -32,8 +32,8 @@ app.use(cors());
 const port = process.env.PORT || 7000;
 app.use(express.json());
 app.use(errorValidation.intanceError);
-app.use((req, res, next) => {
-  if (req.path === "/install/store" || req.path === "/install/userAdmin") {
+app.use("/install", (req, res, next) => {
+  if (req.path === "/store" || req.path === "/userAdmin") {
     return next();
   }
   storeValidation.exec(req, res, next);
