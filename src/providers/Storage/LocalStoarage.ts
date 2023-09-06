@@ -32,6 +32,11 @@ class LocalhostStorageProvider {
 
     await fs.promises.unlink(this.path(filePath, folder));
   }
+
+  async cleanTmp(file: string) {
+    const oldPath = resolve(`${uploud.tmpFolder}/${file}`);
+    await fs.promises.unlink(oldPath);
+  }
 }
 
 export const localhostStorageProvider = new LocalhostStorageProvider();

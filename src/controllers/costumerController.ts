@@ -97,6 +97,7 @@ class CustomerController {
 
     try {
       const customer = await CostumerModel.findById(id).populate("orders");
+      if (!customer) return res.status(404).send({ message: "Cliente não encontrado" });
 
       res.status(200).json(customer);
     } catch (error) {

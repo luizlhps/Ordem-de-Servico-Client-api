@@ -16,7 +16,9 @@ class ConfigApplication {
       const { error } = storageCreateValidate(req.body);
 
       if (error) {
-        return res.status(220).send(`Erros na validação: ${error.details.map((detail) => detail.message).join(", ")}`);
+        return res
+          .status(400)
+          .send({ message: `Erros na validação: ${error.details.map((detail) => detail.message).join(", ")}` });
       }
 
       const already = await StoreModel.findOne();
@@ -28,7 +30,6 @@ class ConfigApplication {
       }
       //Create status
       const incrementIDStatus = (await counterId(counterFinanceModel)).getNextId();
-      console.log(await incrementIDStatus);
 
       const alreadyExistStatusClose = StatusModel.findOne({ name: "Fechado" });
       if (!alreadyExistStatusClose) {
@@ -84,7 +85,7 @@ class ConfigApplication {
       const { error } = registerAdminValidate(req.body);
 
       if (error) {
-        return res.status(400).send(error);
+        return res.status(400).send({ message: error });
       }
 
       const already = await StoreModel.findOne();

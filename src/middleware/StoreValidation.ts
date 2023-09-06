@@ -26,12 +26,10 @@ class StoreValidation {
       }
       this.systemAlreadyConfig = storage?.aplicationConfigurate === true ? true : false;
     }
-    console.log(this.systemAlreadyConfig);
   }
 
   async exec(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log("batata");
       await this.checkSystemConfig(res);
 
       next();

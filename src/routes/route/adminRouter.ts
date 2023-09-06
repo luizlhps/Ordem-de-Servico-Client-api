@@ -11,5 +11,4 @@ adminRouter.get("/", async (req: IRequest, res: Response) => {
   } catch (error) {
     console.log(error);
   }
-  /*  console.log("aqu", req?.user); */
 });

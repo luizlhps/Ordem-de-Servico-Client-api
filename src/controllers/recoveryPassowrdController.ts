@@ -43,7 +43,6 @@ class PasswordRecovery {
       user.passwordExpire = null;
       user.passwordRecovery = null;
       user.save();
-      console.log(user);
       res.send(user);
     } catch (error) {}
   }

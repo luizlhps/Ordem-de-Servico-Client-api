@@ -9,7 +9,6 @@ interface IParameter {
 class AuthPermissionVerify {
   create({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
-      console.log();
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
       const { permissions } = user?.group as any;
 

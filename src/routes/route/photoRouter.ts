@@ -16,8 +16,14 @@ photoRouter.patch(
   photoController.UploudImage.bind(photoController)
 );
 photoRouter.patch(
-  "/profile/admin",
+  "/install/userAdmin",
 
   uploudAvatar.single("avatar"),
   photoController.UploudImageAdmin.bind(photoController)
+);
+photoRouter.patch(
+  "/install/store",
+
+  uploudAvatar.single("storeAvatar"),
+  photoController.UploudImageStore.bind(photoController)
 );

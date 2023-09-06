@@ -13,7 +13,6 @@ class PhotoController {
       if (!file) return res.status(400).send("É necessário um arquivo");
       const avatar_file = file.filename;
 
-      console.log(req.userObj?._id);
       //user
       const user = await User.findById({ _id: req.userObj?._id });
       if (!user) return res.status(404).send("Usuário não encontrado");
@@ -24,7 +23,6 @@ class PhotoController {
       }
 
       //create file in store
-
       await storageProvider.save(avatar_file, "avatar", user);
       await user.save();
       res.status(200).json("atualizado com sucesso");
@@ -36,11 +34,6 @@ class PhotoController {
 
   async UploudImageAdmin(req: Request, res: Response, next: NextFunction) {
     try {
-      //file
-      const { file } = req;
-      if (!file) return next();
-      const avatar_file = file.filename;
-
       //group
       const group = await AuthGroupModel.findOne({ name: "adminMaster" });
       if (!group) return res.status(404).send("As permissões do adminMaster não foi encontrado");
@@ -48,6 +41,20 @@ class PhotoController {
       //user
       const user = await User.findOne({ group: group._id });
       if (!user) return res.status(404).send("Usuário não encontrado");
+
+      //file
+      const { file } = req;
+      if (!file) return next();
+      const avatar_file = file.filename;
+
+      if (user.avatar) {
+        await storageProvider.cleanTmp(avatar_file);
+        return res.status(401).send({
+          error: true,
+          code: "systemconfig.UserAdmin.AlreadyExist",
+          message: "Você não pode editar novamente a foto do admin nesta rota",
+        });
+      }
 
       //remove case already exist the old in user avatar
       if (user.avatar) {
@@ -77,13 +84,18 @@ class PhotoController {
       const store = await StoreModel.findOne();
       if (!store) return res.status(404).send("Loja não encontrado");
 
+      //user
+      if (store.avatar) {
+        await storageProvider.cleanTmp(avatar_file);
+        return res.status(403).send("A loja ja esta com o avatar configurado!");
+      }
+
       //remove case already exist the old in user avatar
       if (store.avatar) {
         await storageProvider.delete(store.avatar, "storeAvatar");
       }
 
       //create file in store
-
       await storageProvider.save(avatar_file, "storeAvatar", store);
       await store.save();
 

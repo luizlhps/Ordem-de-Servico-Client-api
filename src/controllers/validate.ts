@@ -85,8 +85,8 @@ const addressSchema = Joi.object({
   street: Joi.string().required(),
   city: Joi.string().required(),
   number: Joi.string().required(),
-  complement: Joi.string(),
-}).required();
+  complement: Joi.any(),
+});
 
 export const storageCreateValidate = (data: string) => {
   const schema = Joi.object().keys({
@@ -95,15 +95,15 @@ export const storageCreateValidate = (data: string) => {
     phone: Joi.string()
       .required()
       .pattern(/^\d{10,}$/)
-      .message("O número deve conter apenas dígitos e ter no mínimo 11 dígitos."),
+      .message("O celular deve conter apenas dígitos e ter no mínimo 11 dígitos."),
     cnpj: Joi.string()
       .required()
       .pattern(/^\d{10,}$/)
-      .message("O número deve conter apenas dígitos e ter no mínimo 14 dígitos."),
+      .message("O cnpj deve conter apenas dígitos e ter no mínimo 14 dígitos."),
     telephone: Joi.string()
       .required()
       .pattern(/^\d{10,}$/)
-      .message("O número deve conter apenas dígitos e ter no mínimo 10 dígitos."),
+      .message("O telefone deve conter apenas dígitos e ter no mínimo 10 dígitos."),
   });
 
   return schema.validate(data);

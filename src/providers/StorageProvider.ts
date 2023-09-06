@@ -26,6 +26,17 @@ class StorageProvider {
         break;
     }
   }
+
+  async cleanTmp(file: string) {
+    switch (process.env.DISK) {
+      case "firebase":
+        await firebaseStorageProvider.cleanTmp(file);
+        break;
+      case "local":
+        await localhostStorageProvider.cleanTmp(file);
+        break;
+    }
+  }
 }
 
 export const storageProvider = new StorageProvider();

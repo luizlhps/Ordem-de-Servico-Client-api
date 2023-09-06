@@ -100,11 +100,10 @@ class UserController {
   async login(req: Express.Request, res: Express.Response) {
     try {
       const { error } = loginValidate(req.body);
-      if (error) return res.status(400).send(error.message);
+      if (error) return res.status(400).send({ message: error.message });
 
       const user = (await User.findOne({ email: req.body.email }).populate("group")) as IUser;
 
-      console.log(user);
       if (!user) {
         return res.status(400).send("email ou senha incorretos");
       }
@@ -115,7 +114,6 @@ class UserController {
       const access_token = await generateTokenProvider.exec(user._id);
       const refresh_token = await generateRefreshTokenProvider.exec(user._id);
 
-      console.log(user);
       const permissions = user.group.permissions;
       const roles = {
         _id: user.group._id,

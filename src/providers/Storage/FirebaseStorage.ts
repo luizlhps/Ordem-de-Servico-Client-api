@@ -54,6 +54,7 @@ class FirebaseStorageProvider {
       });
 
       stream.end(fileBuffer);
+      await fs.promises.unlink(oldPath);
     });
   }
 
@@ -61,10 +62,7 @@ class FirebaseStorageProvider {
     const bucket = admin.storage().bucket();
 
     const urlPath = file.replace("https://storage.googleapis.com/loustech-site.appspot.com/", "");
-    const urlLocalPath = file.replace(`https://storage.googleapis.com/loustech-site.appspot.com/${folder}/`, "");
-    const local = resolve(`tmp/${urlLocalPath}`);
 
-    console.log("aq", local);
     await bucket
       .file(urlPath)
       .delete()
@@ -73,15 +71,11 @@ class FirebaseStorageProvider {
       .catch((error) => {
         console.error("Erro ao excluir o arquivo:", error);
       });
+  }
 
-    try {
-      console.log("oi");
-      await fs.promises.stat(local);
-    } catch (error) {
-      return;
-    }
-
-    await fs.promises.unlink(local);
+  async cleanTmp(file: string) {
+    const oldPath = resolve(`${uploud.tmpFolder}/${file}`);
+    await fs.promises.unlink(oldPath);
   }
 }
 

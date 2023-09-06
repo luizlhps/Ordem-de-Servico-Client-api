@@ -164,14 +164,14 @@ class OrderController {
   async getCostumerOrders(req: Request, res: Response) {
     const { costumerId, filter = "", page = 1, limit = 10 } = req.query;
     if (!costumerId) return res.status(404).json({ message: "Id do cliente é obrigatório" });
-
     try {
       const costumer = await CostumerModel.findById(costumerId);
 
       if (!costumer) return res.status(404).json({ message: "Cliente não encontrado" });
 
+      const numberId = Number(filter);
       const queryFilter = {
-        customer: costumerId,
+        customer: costumer._id,
         $and: [
           {
             $or: [
@@ -180,21 +180,80 @@ class OrderController {
               { model: { $regex: filter, $options: "i" } },
               { defect: { $regex: filter, $options: "i" } },
               { observation: { $regex: filter, $options: "i" } },
+              { id: numberId ? numberId : null },
             ],
           },
-          { deleted: true },
+          { deleted: false },
         ],
       };
-      const totalCount = await orderModel.countDocuments({ costumer: costumerId });
+      const totalCount = await orderModel.countDocuments({ customer: costumer._id });
 
       // Consulta os pedidos do cliente com a paginação
       const orders = await orderModel
-        .find(queryFilter)
-        .skip((Number(page) - 1) * Number(limit))
-        .limit(Number(limit))
-        .populate("services")
-        .populate("status")
-        .populate("customer");
+        .aggregate([
+          {
+            $match: {
+              $and: [
+                {
+                  $or: [
+                    { equipment: { $regex: filter, $options: "i" } },
+                    { brand: { $regex: filter, $options: "i" } },
+                    { model: { $regex: filter, $options: "i" } },
+                    { defect: { $regex: filter, $options: "i" } },
+                    { observation: { $regex: filter, $options: "i" } },
+                    { id: numberId ? numberId : null },
+                  ],
+                },
+                { deleted: false },
+              ],
+            },
+          },
+          /*from: <nome da Coleção onde vamos buscar os dados>,
+            localField: <nome do atributo usado na condição de igualdade, na coleção origem, aqui chamada de Coleção>,
+            foreignField: <nome do atributo usado na condição de igualdade na tabela destino, onde buscaremos os dados>,
+            as: <atributo que receberá os novos dados > */
+          {
+            $lookup: {
+              from: "serviceprices", // collection selecionada
+              localField: "_id", // o campo que compara com a coletion serviceprices
+              foreignField: "order", // campo que vai comparar com o id de cima localfield
+              as: "servicesPrices", // nome
+            },
+          },
+
+          {
+            $lookup: {
+              from: "status",
+              localField: "status",
+              foreignField: "_id",
+              as: "status",
+            },
+          },
+
+          {
+            $lookup: {
+              from: "services",
+              localField: "services",
+              foreignField: "_id",
+              as: "services",
+            },
+          },
+
+          {
+            $lookup: {
+              from: "customers",
+              localField: "customer",
+              foreignField: "_id",
+              as: "customer",
+            },
+          },
+
+          { $unwind: "$customer" },
+          { $unwind: "$status" },
+        ])
+        .sort({ id: -1 })
+        .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+        .limit(Number(limit) === 0 ? totalCount : Number(limit));
 
       res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), orders });
     } catch (error: any) {
@@ -273,6 +332,7 @@ class OrderController {
       if (!orders) {
         throw res.status(404).send("Houve um erro ao buscar as O.S fechadas");
       }
+
       res.status(200).json({
         total: count,
         page: Number(page),
