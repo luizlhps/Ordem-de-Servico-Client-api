@@ -4,7 +4,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { IRefreshToken, RefreshTokenModel } from "../models/RefreshToken.model";
 import { generateTokenProvider } from "../providers/GenerateTokenProvider";
 import { ConstructionOutlined } from "@mui/icons-material";
-import { IUser } from "./userController";
+import { IUserInputs } from "./userController";
 
 interface GroupPermissions {
   create: string[];
@@ -52,7 +52,7 @@ class HandleRefreshToken {
       if (userId !== userIdDatabase) return res.status(403).send({ message: "Refresh token inválido" });
 
       const accessToken = await generateTokenProvider.exec(refreshTokenObj.userId.toString());
-      const user = (await User.findOne({ _id: userId }).populate("group")) as IUser;
+      const user = (await User.findOne({ _id: userId }).populate("group")) as IUserInputs;
       if (!user) {
         return res.status(400).send("email ou senha incorretos");
       }

@@ -21,7 +21,6 @@ class Auth {
 
       next();
     } catch (error) {
-      console.log(error);
       if (error instanceof TokenExpiredError) {
         return res.status(401).send({ error: true, code: "token.expired", message: "Token inválido." });
       }

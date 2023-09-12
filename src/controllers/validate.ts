@@ -28,6 +28,13 @@ export const registerValidate = (data: string) => {
       "string.min": "A senha deve ter no mínimo {#limit} caracteres",
       "string.max": "A senha deve ter no máximo {#limit} caracteres",
     }),
+    phone: Joi.string().required().min(6).max(250).messages({
+      "string.base": "O campo phone deve ser uma string",
+      "string.empty": "O campo phone não pode estar vazio",
+      "any.required": "O campo phone é obrigatório",
+      "string.min": "O phone deve ter no mínimo {#limit} caracteres",
+      "string.max": "O phone deve ter no máximo {#limit} caracteres",
+    }),
   });
 
   return schema.validate(data);

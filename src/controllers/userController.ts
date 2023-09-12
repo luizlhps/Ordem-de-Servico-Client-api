@@ -28,10 +28,11 @@ export interface IGroup {
   updatedAt: string;
 }
 
-export interface IUser {
+export interface IUserInputs {
   _id: string;
   name: string;
   email: string;
+  phone: string;
   password: string;
   deleted: boolean;
   group: IGroup;
@@ -48,10 +49,11 @@ class UserController {
       if (error) return res.status(400).send(error.message);
       const incrementId = (await counterId(UserCounter)).getNextId();
       const user = new User({
-        id: incrementId,
+        id: await incrementId,
         name: req.body.name,
         email: req.body.email,
         phone: req.body.phone,
+        group: req.body.group,
         password: bcript.hashSync(req.body.password),
       });
 
@@ -66,10 +68,10 @@ class UserController {
     }
   }
 
-  async update(req: Express.Request, res: Express.Response) {
+  async updateProfileUser(req: Express.Request, res: Express.Response) {
     try {
       const userID = req.userObj?._id;
-      const updateFields: IInputsUpdate = {
+      const updateFields: any = {
         name: req.body.name,
         phone: req.body.phone,
         email: req.body.email,
@@ -93,7 +95,38 @@ class UserController {
       res.status(201).send(user);
     } catch (error: any) {
       console.log(error);
-      res.status(500).json({ error: true, code: "user.error", message: "Erro ao atualizar o update" });
+      res.status(500).json({ error: true, code: "user.error", message: "Erro ao atualizar" });
+    }
+  }
+  async updateOfficials(req: Express.Request, res: Express.Response) {
+    try {
+      const userID = req.params.id;
+      const updateFields: any = {
+        name: req.body.name,
+        phone: req.body.phone,
+        email: req.body.email,
+        group: req.body.group,
+      };
+
+      if (req.body.password) {
+        updateFields.password = bcript.hashSync(req.body.password);
+      }
+
+      const user = await User.findByIdAndUpdate(
+        userID,
+        {
+          $set: updateFields,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+      if (!user) res.status(404).json({ error: true, code: "user.notFound", message: "Usuário não encontrado" });
+      res.status(201).send(user);
+    } catch (error: any) {
+      console.log(error);
+      res.status(500).json({ error: true, code: "user.error", message: "Erro ao atualizar" });
     }
   }
 
@@ -102,7 +135,7 @@ class UserController {
       const { error } = loginValidate(req.body);
       if (error) return res.status(400).send({ message: error.message });
 
-      const user = (await User.findOne({ email: req.body.email }).populate("group")) as IUser;
+      const user = (await User.findOne({ email: req.body.email }).populate("group")) as IUserInputs;
 
       if (!user) {
         return res.status(400).send("email ou senha incorretos");
@@ -126,6 +159,32 @@ class UserController {
       console.log(error);
     }
   }
+  async delete(req: Express.Request, res: Express.Response) {
+    try {
+      const { id } = req.params;
+      const userAlredyExist = await User.findById(id);
+
+      if (!userAlredyExist)
+        return res.status(404).json({ error: true, code: "user.error", message: "Usuário não existe" });
+
+      if (userAlredyExist.deleted === true)
+        return res.status(404).json({ error: true, code: "user.error", message: "O Usuário já esta deletado" });
+
+      const user = await User.findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            deleted: true,
+          },
+        },
+        { new: true }
+      );
+
+      res.status(200).json({ message: "Usuário deletado com sucesso!!" });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   async getAll(req: Request, res: Response) {
     const { filter, page = 1, limit = 10 } = req.query;
@@ -138,13 +197,19 @@ class UserController {
           {
             $or: [{ name: { $regex: filter, $options: "i" } }, { id: numberId ? numberId : null }],
           },
+          { deleted: false },
         ],
       });
 
       const user = await User.aggregate([
         {
           $match: {
-            $or: [{ name: { $regex: filter, $options: "i" } }, { id: numberId ? numberId : null }],
+            $and: [
+              {
+                $or: [{ name: { $regex: filter, $options: "i" } }, { id: numberId ? numberId : null }],
+              },
+              { deleted: false },
+            ],
           },
         },
         {
@@ -155,8 +220,10 @@ class UserController {
             as: "group",
           },
         },
+        { $unwind: "$group" },
+        { $unset: "password" },
       ])
-        .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+        .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
         .limit(Number(limit) === 0 ? totalCount : Number(limit));
 
       res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), user });

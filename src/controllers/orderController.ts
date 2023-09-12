@@ -142,7 +142,7 @@ class OrderController {
             { $unwind: "$status" },
           ])
           .sort({ id: -1 })
-          .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+          .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
           .limit(Number(limit) === 0 ? count : Number(limit));
         /*  .populate(["status", "services", "orders", "customer"]); */
 
@@ -171,7 +171,6 @@ class OrderController {
 
       const numberId = Number(filter);
       const queryFilter = {
-        customer: costumer._id,
         $and: [
           {
             $or: [
@@ -193,6 +192,7 @@ class OrderController {
         .aggregate([
           {
             $match: {
+              customer: costumer._id,
               $and: [
                 {
                   $or: [
@@ -252,7 +252,7 @@ class OrderController {
           { $unwind: "$status" },
         ])
         .sort({ id: -1 })
-        .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+        .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
         .limit(Number(limit) === 0 ? totalCount : Number(limit));
 
       res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), orders });
@@ -325,7 +325,7 @@ class OrderController {
           { $unwind: "$customer" },
           { $unwind: "$status" },
         ])
-        .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
+        .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
         .limit(Number(limit) === 0 ? count : Number(limit))
         .sort({ id: -1 });
 

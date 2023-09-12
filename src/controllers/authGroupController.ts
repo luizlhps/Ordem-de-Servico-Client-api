@@ -81,8 +81,9 @@ class AuthGroupController {
           },
         },
       ])
-        .skip(Number(page) === 0 ? 1 : (Number(page) - 1) * Number(limit))
-        .limit(Number(limit) === 0 ? totalCount : Number(limit));
+        .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
+        .limit(Number(limit) === 0 ? totalCount : Number(limit))
+        .sort({ _id: -1 });
 
       res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), authGroup });
     } catch (error) {

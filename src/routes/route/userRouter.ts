@@ -7,6 +7,8 @@ export const userRouter = Express.Router();
 userRouter.post("/register", userControler.register);
 userRouter.post("/login", userControler.login);
 userRouter.get("/users", auth.autheticate, authPermissionVerify.view({ parameter: "admin" }), userControler.getAll);
-userRouter.put("/user", auth.autheticate, userControler.update);
-/* userRouter.put("/users", userControler.); */
+userRouter.put("/user", auth.autheticate, userControler.updateProfileUser);
+userRouter.put("/user/:id", auth.autheticate, userControler.updateOfficials);
+userRouter.delete("/user/:id", userControler.delete);
+
 userRouter.get("/me", auth.autheticate, userControler.getMyInfo);
