@@ -3,7 +3,7 @@ import { registerAdminValidate, storageCreateValidate } from "./validate";
 import { StoreModel } from "../models/store.model";
 import { User, UserCounter } from "../models/User.model";
 import bcript from "bcryptjs";
-import { AuthGroupModel } from "../models/AuthGroup.model";
+import { AuthGroupModel, authGroupCounter } from "../models/AuthGroup.model";
 import { StatusModel } from "../models/Status.model";
 import { counterId } from "../utils/autoIncrementId";
 import { Balance, counterFinanceModel } from "../models/Finance.model";
@@ -105,7 +105,10 @@ class ConfigApplication {
         const authGroupAlreadyExist = await AuthGroupModel.findOne({ name: "adminMaster" });
 
         if (!authGroupAlreadyExist) {
+          const incrementNextIDAuthGroup = (await counterId(authGroupCounter)).getNextId();
+
           const authGroup = await AuthGroupModel.create({
+            id: await incrementNextIDAuthGroup,
             name: "adminMaster",
             permissions: {
               create: ["adminMaster"],

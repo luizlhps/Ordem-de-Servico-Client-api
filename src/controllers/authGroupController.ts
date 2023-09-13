@@ -78,6 +78,7 @@ class AuthGroupController {
         {
           $group: {
             _id: "$_id",
+            id: { $first: "$id" },
             name: { $first: "$name" },
             permissions: { $first: "$permissions" },
           },

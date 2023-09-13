@@ -6,6 +6,7 @@ import { loginValidate, registerValidate } from "./validate";
 import { generateTokenProvider } from "../providers/GenerateTokenProvider";
 import { generateRefreshTokenProvider } from "../providers/GenerateRefreshTokenProvider";
 import { counterId } from "../utils/autoIncrementId";
+import { AuthGroupModel, authGroupCounter } from "../models/AuthGroup.model";
 
 export interface IPermission {
   create: string[];

@@ -9,57 +9,87 @@ interface IParameter {
 class AuthPermissionVerify {
   create({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
-      const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const { permissions } = user?.group as any;
+      try {
+        const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
+        const userGroup = user?.group as any;
 
-      if (!permissions?.create?.includes(parameter)) {
-        if (permissions?.create?.includes("adminMaster")) return next();
+        if (!userGroup.permissions) return res.status(403).send("Acesso não autorizado!");
+
+        const { permissions } = userGroup;
+        if (!permissions?.create?.includes(parameter)) {
+          if (permissions?.create?.includes("adminMaster")) return next();
+          return res.status(403).send("Acesso não autorizado!");
+        }
+        next();
+      } catch (error) {
+        console.log(error);
         return res.status(403).send("Acesso não autorizado!");
       }
-      next();
     };
   }
 
   update({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
-      const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const { permissions } = user?.group as any;
+      try {
+        const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
+        const userGroup = user?.group as any;
 
-      if (!permissions?.update?.includes(parameter)) {
-        if (!permissions?.update?.includes("adminMaster")) return next();
+        if (!userGroup.permissions) return res.status(403).send("Acesso não autorizado!");
+
+        const { permissions } = userGroup;
+        if (!permissions?.update?.includes(parameter)) {
+          if (!permissions?.update?.includes("adminMaster")) return next();
+          return res.status(403).send("Acesso não autorizado!");
+        }
+        next();
+      } catch (error) {
+        console.log(error);
         return res.status(403).send("Acesso não autorizado!");
       }
-      next();
     };
   }
-
   view({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
-      const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const { permissions } = user?.group as any;
+      try {
+        const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
 
-      if (!permissions?.view?.includes(parameter)) {
-        if (permissions?.view?.includes("adminMaster")) {
-          return next();
+        const userGroup = user?.group as any;
+        if (!userGroup.permissions) return res.status(403).send("Acesso não autorizado!");
+
+        const { permissions } = userGroup;
+        if (!permissions?.view?.includes(parameter)) {
+          if (permissions?.view?.includes("adminMaster")) {
+            return next();
+          }
+          console.log("res");
+          return res.status(403).send("Acesso não autorizado!");
         }
-        console.log("res");
-
-        return res.status(403).send("Acesso não autorizadso!");
+        next();
+      } catch (error) {
+        console.log(error);
+        return res.status(403).send("Acesso não autorizado!");
       }
-      next();
     };
   }
 
   delete({ parameter }: IParameter) {
     return async (req: IRequest, res: Response, next: NextFunction) => {
-      const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-      const { permissions } = user?.group as any;
+      try {
+        const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
+        const userGroup = user?.group as any;
 
-      if (!permissions?.deleted?.includes(parameter)) {
-        if (permissions?.deleted?.includes("adminMaster")) return next();
+        if (!userGroup.permissions) return res.status(403).send("Acesso não autorizado!");
+
+        const { permissions } = userGroup;
+        if (!permissions?.deleted?.includes(parameter)) {
+          if (permissions?.deleted?.includes("adminMaster")) return next();
+          return res.status(403).send("Acesso não autorizado!");
+        }
+        next();
+      } catch (error) {
+        console.log(error);
         return res.status(403).send("Acesso não autorizado!");
       }
-      next();
     };
   }
 }

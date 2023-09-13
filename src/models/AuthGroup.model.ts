@@ -9,6 +9,7 @@ interface IPermissions {
 
 export interface IGroup {
   name: string;
+  id: number;
   permissions: IPermissions;
 }
 
@@ -22,6 +23,7 @@ export const authGroupCounter = model(
 
 const authGroupModel = new Schema<IGroup>(
   {
+    id: Number,
     name: { type: String, required: true },
     permissions: {
       create: {
