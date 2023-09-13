@@ -12,6 +12,14 @@ export interface IGroup {
   permissions: IPermissions;
 }
 
+export const authGroupCounter = model(
+  "authGroupCounter",
+  new Schema({
+    _id: { type: String, required: true },
+    seq_value: { type: Number, default: 0 },
+  })
+);
+
 const authGroupModel = new Schema<IGroup>(
   {
     name: { type: String, required: true },

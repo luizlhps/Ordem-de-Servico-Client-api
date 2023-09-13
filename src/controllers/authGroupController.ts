@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
-import { AuthGroupModel } from "../models/AuthGroup.model";
+import { AuthGroupModel, authGroupCounter } from "../models/AuthGroup.model";
+import { counterId } from "../utils/autoIncrementId";
 
 class AuthGroupController {
   async create(req: Request, res: Response) {
     try {
       const { name, create, deleted, view, update } = req.body;
       if (!name) return res.status(500).send("Nome é um campo necessário");
-
+      const incrementId = (await counterId(authGroupCounter)).getNextId;
       const authGroup = await AuthGroupModel.create({
+        id: await incrementId(),
         name,
         permissions: {
           create,
