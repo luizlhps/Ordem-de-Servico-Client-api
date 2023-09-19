@@ -3,7 +3,17 @@ import { IRequest, IUser } from "../types/requestType";
 import { User } from "../models/User.model";
 
 interface IParameter {
-  parameter: "dashboard" | "customer" | "finance" | "order" | "status" | "services" | "user" | "admin" | "visitor";
+  parameter:
+    | "dashboard"
+    | "customer"
+    | "finance"
+    | "order"
+    | "status"
+    | "services"
+    | "user"
+    | "admin"
+    | "visitor"
+    | "permissionsGroup";
 }
 
 class AuthPermissionVerify {
@@ -38,7 +48,9 @@ class AuthPermissionVerify {
 
         const { permissions } = userGroup;
         if (!permissions?.update?.includes(parameter)) {
-          if (!permissions?.update?.includes("adminMaster")) return next();
+          if (permissions?.view?.includes("adminMaster")) {
+            return next();
+          }
           return res.status(403).send("Acesso não autorizado!");
         }
         next();
@@ -52,11 +64,13 @@ class AuthPermissionVerify {
     return async (req: IRequest, res: Response, next: NextFunction) => {
       try {
         const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
-
         const userGroup = user?.group as any;
+
         if (!userGroup.permissions) return res.status(403).send("Acesso não autorizado!");
 
         const { permissions } = userGroup;
+
+        console.log(permissions);
         if (!permissions?.view?.includes(parameter)) {
           if (permissions?.view?.includes("adminMaster")) {
             return next();

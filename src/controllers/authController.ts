@@ -6,15 +6,16 @@ const secret = process.env.TOKEN_SECRET;
 
 class Auth {
   async autheticate(req: Request, res: Response, next: NextFunction) {
-    const token = req.header("Authorization");
-
-    if (!token) return res.status(401).send("Acesso Negado");
     try {
+      const token = req.header("Authorization");
+
+      if (!token) return res.status(401).send("Acesso Negado");
       const Verified = jwt.verify(token, secret!) as any;
 
       req.userObj = Verified;
 
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
+      if (!user) return res.status(403).send({ error: true, code: "token.user.invalid", message: "Token inválido." });
       const permissions = user?.group as any;
 
       if (req.userObj) req.userObj.group = permissions?.permissions;

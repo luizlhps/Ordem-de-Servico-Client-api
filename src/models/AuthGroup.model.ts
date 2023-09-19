@@ -5,10 +5,12 @@ interface IPermissions {
   create: [string];
   deleted: [string];
   view: [string];
+  update: [string];
 }
 
 export interface IGroup {
   name: string;
+  deleted: boolean;
   id: number;
   permissions: IPermissions;
 }
@@ -25,20 +27,54 @@ const authGroupModel = new Schema<IGroup>(
   {
     id: Number,
     name: { type: String, required: true },
+    deleted: { type: Boolean, default: false },
     permissions: {
       create: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "adminMaster"],
+        enum: [
+          "dashboard",
+          "customer",
+          "finance",
+          "order",
+          "status",
+          "services",
+          "user",
+          "admin",
+          "permissionsGroup",
+          "adminMaster",
+        ],
         required: false,
       },
       update: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "adminMaster"],
+        enum: [
+          "dashboard",
+          "customer",
+          "finance",
+          "order",
+          "status",
+          "services",
+          "user",
+          "admin",
+          "permissionsGroup",
+          "adminMaster",
+        ],
         required: false,
       },
       deleted: {
         type: [String],
-        enum: ["dashboard", "customer", "finance", "order", "status", "services", "user", "admin", "adminMaster"],
+        enum: [
+          "dashboard",
+          "customer",
+          "finance",
+          "order",
+          "status",
+          "services",
+          "user",
+          "admin",
+          "permissionsGroup",
+          "adminMaster",
+        ],
         required: false,
       },
       view: {
@@ -52,6 +88,7 @@ const authGroupModel = new Schema<IGroup>(
           "services",
           "user",
           "admin",
+          "permissionsGroup",
           "adminMaster",
           "visitor",
         ],

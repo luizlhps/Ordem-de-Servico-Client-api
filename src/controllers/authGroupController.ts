@@ -72,7 +72,7 @@ class AuthGroupController {
       const authGroup = await AuthGroupModel.aggregate([
         {
           $match: {
-            $or: [{ name: { $regex: filter, $options: "i" } }, { id: numberId ? numberId : null }],
+            $or: [{ name: { $ne: "adminMaster", $regex: filter, $options: "i" } }, { id: numberId ? numberId : null }],
           },
         },
         {

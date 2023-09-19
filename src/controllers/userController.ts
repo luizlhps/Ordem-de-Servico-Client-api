@@ -124,7 +124,7 @@ class UserController {
         }
       );
       if (!user) res.status(404).json({ error: true, code: "user.notFound", message: "Usuário não encontrado" });
-      res.status(201).send(user);
+      res.status(201).send("user");
     } catch (error: any) {
       console.log(error);
       res.status(500).json({ error: true, code: "user.error", message: "Erro ao atualizar" });
