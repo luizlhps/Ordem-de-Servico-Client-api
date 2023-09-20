@@ -23,3 +23,9 @@ authGroupRouter.get(
   authPermissionVerify.view({ parameter: "permissionsGroup" }),
   authGroupController.getAll
 );
+authGroupRouter.delete(
+  "/:id",
+  auth.autheticate,
+  authPermissionVerify.view({ parameter: "permissionsGroup" }),
+  authGroupController.delete
+);

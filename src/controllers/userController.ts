@@ -41,8 +41,6 @@ export interface IUserInputs {
   updatedAt: string;
 }
 
-const secret = process.env.TOKEN_SECRET;
-
 class UserController {
   async register(req: Express.Request, res: Express.Response) {
     const { error } = registerValidate(req.body);

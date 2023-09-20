@@ -75,7 +75,6 @@ class AuthPermissionVerify {
           if (permissions?.view?.includes("adminMaster")) {
             return next();
           }
-          console.log("res");
           return res.status(403).send("Acesso não autorizado!");
         }
         next();
