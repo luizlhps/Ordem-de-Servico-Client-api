@@ -15,8 +15,12 @@ class Auth {
       req.userObj = Verified;
 
       const user = await User.findOne({ _id: req.userObj?._id }).populate("group");
+
       if (!user) return res.status(403).send({ error: true, code: "token.user.invalid", message: "Token inválido." });
       const permissions = user?.group as any;
+
+      if (user.deleted === true)
+        return res.status(401).send({ error: true, code: "token.user.deleted", message: "Acesso negado!" });
 
       if (req.userObj) req.userObj.group = permissions?.permissions;
 

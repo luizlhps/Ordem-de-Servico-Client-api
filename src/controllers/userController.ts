@@ -169,6 +169,15 @@ class UserController {
       if (userAlredyExist.deleted === true)
         return res.status(404).json({ error: true, code: "user.error", message: "O Usuário já esta deletado" });
 
+      const isAdmin = await AuthGroupModel.findById(userAlredyExist?.group);
+      if (!isAdmin)
+        return res.status(404).send({ error: true, code: "user.error", message: "houve um erro ao encontrar o cargo" });
+
+      if (isAdmin.name === "adminMaster")
+        return res
+          .status(403)
+          .send({ error: true, code: "user.error", message: "Não é possivel apagar o adminMaster" });
+
       const user = await User.findByIdAndUpdate(
         id,
         {

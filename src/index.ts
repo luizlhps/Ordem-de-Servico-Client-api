@@ -51,6 +51,6 @@ app.use("/services", serviceRouter);
 app.use("/dashboard", dashBoardRouter);
 app.use("/authGroup", authGroupRouter);
 app.use("/refreshToken", refreshTokenRouter);
-app.use("/install", configApplicationRouter);
+app.use("/", configApplicationRouter);
 
 app.listen(port, () => console.log("Porta usada:", port));

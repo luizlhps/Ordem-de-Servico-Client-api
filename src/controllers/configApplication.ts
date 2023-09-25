@@ -56,28 +56,15 @@ class ConfigApplication {
           aplicationConfigurate: true,
         });
         return res.status(201).send({ store });
+      } else {
+        return res.status(400).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o store" });
       }
-      const store = await StoreModel.findByIdAndUpdate(
-        already._id,
-        {
-          $set: {
-            name: name,
-            address: address,
-            phone: phone,
-            cnpj: cnpj,
-            telephone: telephone,
-            aplicationConfigurate: true,
-          },
-        },
-        { new: true }
-      );
-
-      return res.status(201).send({ store });
     } catch (error) {
       console.log(error);
-      res.status(401).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o store" });
+      res.status(400).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o store" });
     }
   }
+
   async userAdmin(req: Request, res: Response, next: NextFunction) {
     try {
       const { name, phone, email, password } = req.body;
@@ -141,6 +128,59 @@ class ConfigApplication {
     } catch (error) {
       console.log(error);
       res.status(401).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o admin master" });
+    }
+  }
+
+  async updateStore(req: Request, res: Response) {
+    try {
+      const { name, address, phone, cnpj, telephone } = req.body;
+
+      const alreadyExistStore = await StoreModel.findOne();
+      if (alreadyExistStore?.alreadyExistAdmin === false) {
+        return res
+          .status(401)
+          .send({ error: true, code: "system.notConfig.store", message: "Configure o sistema antes de prosseguir" });
+      }
+      if (!alreadyExistStore) {
+        return res.status(400).send({ error: true, code: "system.Error", message: "Algum erro ocorreu." });
+      }
+
+      const store = await StoreModel.findByIdAndUpdate(
+        alreadyExistStore._id,
+        {
+          $set: {
+            name: name,
+            address: address,
+            phone: phone,
+            cnpj: cnpj,
+            telephone: telephone,
+            aplicationConfigurate: true,
+          },
+        },
+        { new: true }
+      );
+      return res.status(201).send({ store });
+    } catch (error) {
+      console.log(error);
+      res.status(400).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o store" });
+    }
+  }
+  async getInfoStore(req: Request, res: Response) {
+    try {
+      const alreadyExistStore = await StoreModel.findOne();
+      if (alreadyExistStore?.alreadyExistAdmin === false) {
+        return res
+          .status(401)
+          .send({ error: true, code: "system.notConfig.store", message: "Configure o sistema antes de prosseguir" });
+      }
+      if (!alreadyExistStore) {
+        return res.status(400).send({ error: true, code: "system.Error", message: "Algum erro ocorreu." });
+      }
+
+      return res.status(201).send(alreadyExistStore);
+    } catch (error) {
+      console.log(error);
+      res.status(400).send({ error: true, code: "system.Error", message: "Houve um erro ao criar o store" });
     }
   }
 }

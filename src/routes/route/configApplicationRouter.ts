@@ -7,5 +7,7 @@ const uploudAvatar = multer(uploudConfig);
 
 export const configApplicationRouter = Router();
 
-configApplicationRouter.post("/store", configApplication.store);
-configApplicationRouter.post("/userAdmin", configApplication.userAdmin);
+configApplicationRouter.post("/install/store", configApplication.store);
+configApplicationRouter.post("/install/userAdmin", configApplication.userAdmin);
+configApplicationRouter.put("/store", configApplication.updateStore);
+configApplicationRouter.get("/store", configApplication.getInfoStore);

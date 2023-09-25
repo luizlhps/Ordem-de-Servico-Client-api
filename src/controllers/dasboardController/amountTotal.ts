@@ -2,7 +2,7 @@ import { ITransaction, Transaction } from "../../models/Finance.model";
 
 interface ITransactionsProps {
   transactionsPreviusMonth: ITransaction[];
-  transactions: ITransaction[];
+  currentMonthTransactions: ITransaction[];
   status: "finished" | "open";
 }
 
@@ -16,7 +16,11 @@ class AmountTotal {
     return Number(value.toFixed(2));
   }
 
-  public calculateCreditPercetegeMonth({ transactionsPreviusMonth, transactions, status }: ITransactionsProps) {
+  public calculateCreditPercetegeMonth({
+    transactionsPreviusMonth,
+    currentMonthTransactions,
+    status,
+  }: ITransactionsProps) {
     let countprevMonth: number = 0;
     let countMonth: number = 0;
 
@@ -28,7 +32,7 @@ class AmountTotal {
       return acc;
     }, 0);
 
-    const month = transactions.reduce((acc: number, current) => {
+    const month = currentMonthTransactions.reduce((acc: number, current) => {
       if (current.type === "credit" && current.status === status) {
         countMonth++;
         acc += current.amount;
@@ -50,7 +54,11 @@ class AmountTotal {
     return calculateCredit;
   }
 
-  public calculateDebitPercetegeMonth({ transactionsPreviusMonth, transactions, status }: ITransactionsProps) {
+  public calculateDebitPercetegeMonth({
+    transactionsPreviusMonth,
+    currentMonthTransactions,
+    status,
+  }: ITransactionsProps) {
     let countprevMonth: number = 0;
     let countMonth: number = 0;
 
@@ -63,7 +71,7 @@ class AmountTotal {
       return acc;
     }, 0);
 
-    const month = transactions.reduce((acc: number, current) => {
+    const month = currentMonthTransactions.reduce((acc: number, current) => {
       if (current.type === "debit" && current.status === status) {
         countMonth++;
 
@@ -105,7 +113,7 @@ class AmountTotal {
       percetege: this.calculatePercetege(monthCredit, monthDebit),
       totalAmountCredit: monthCredit,
       totalAmountDebit: monthDebit,
-      totalAmount: monthDebit + monthCredit,
+      totalAmountMonth: monthDebit + monthCredit,
     };
     return calculateCredit;
   }

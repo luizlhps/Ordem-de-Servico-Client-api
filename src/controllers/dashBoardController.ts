@@ -8,7 +8,7 @@ import { StatusModel } from "../models/Status.model";
 
 class DasboardController {
   private async filterTransaction(endPreviusMonth: Date, endMonth: Date, startPreviusMonth: Date) {
-    const transactions = await Transaction.find({
+    const currentMonthTransactions = await Transaction.find({
       $and: [
         {
           entryDate: {
@@ -32,7 +32,7 @@ class DasboardController {
       ],
     });
 
-    return { transactions, transactionsPreviusMonth };
+    return { currentMonthTransactions, transactionsPreviusMonth };
   }
 
   async GetAllInfo(req: Request, res: Response) {
@@ -44,13 +44,13 @@ class DasboardController {
       const startPreviusMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
 
       //transactions
-      const { transactions, transactionsPreviusMonth } = await this.filterTransaction(
+      const { currentMonthTransactions, transactionsPreviusMonth } = await this.filterTransaction(
         endPreviusMonth,
         endMonth,
         startPreviusMonth
       );
 
-      if (!transactions) throw res.status(400).send("Houve um erro ao buscar as transações");
+      if (!currentMonthTransactions) throw res.status(400).send("Houve um erro ao buscar as transações");
       if (!transactionsPreviusMonth) {
         throw res.status(400).send("Houve um erro ao buscar as transações do mês anterior");
       }
@@ -64,31 +64,33 @@ class DasboardController {
       //finished
       const creditPercetege = amountTotal.calculateCreditPercetegeMonth({
         transactionsPreviusMonth,
-        transactions,
+        currentMonthTransactions,
         status: "finished",
       });
 
       const debitPercetege = amountTotal.calculateDebitPercetegeMonth({
         transactionsPreviusMonth,
-        transactions,
+        currentMonthTransactions,
         status: "finished",
       });
 
       //pending
       const creditPercetegePending = amountTotal.calculateCreditPercetegeMonth({
         transactionsPreviusMonth,
-        transactions,
+        currentMonthTransactions,
         status: "open",
       });
 
       const debitPercetegePending = amountTotal.calculateDebitPercetegeMonth({
         transactionsPreviusMonth,
-        transactions,
+        currentMonthTransactions,
         status: "open",
       });
 
+      const totalCountTransactionsPedding = await Transaction.countDocuments({ status: "open" });
+
       //balance
-      const balancePercetege = amountTotal.calculateBalanceMonth(transactions);
+      const balancePercetege = amountTotal.calculateBalanceMonth(currentMonthTransactions);
 
       //totalCount
       const totalCount = creditPercetege.counter.MonthCredit + debitPercetege.counter.MonthDebit;
@@ -136,8 +138,9 @@ class DasboardController {
         totalCount: totalCount,
         totalCountPrevMonth,
         percetege: totalCountPercentege,
-        balance: balancePercetege,
+        balance: { ...balancePercetege, totalAmount: balance.amount },
         pending: {
+          transaction: { totalCount: totalCountTransactionsPedding },
           credit: creditPercetegePending,
           debit: debitPercetegePending,
           orders: { totalCount: ordersTotalCount, percetege: orderPercentege },
@@ -148,7 +151,11 @@ class DasboardController {
         },
       };
 
-      res.status(200).send({ ...dashboard, transactions, transactionsPreviusMonth });
+      res.status(200).send({
+        ...dashboard,
+        transactions: currentMonthTransactions,
+        transactionsPreviusMonth,
+      });
     } catch (error) {
       console.log(error);
     }
