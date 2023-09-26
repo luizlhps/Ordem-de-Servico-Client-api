@@ -25,5 +25,11 @@ photoRouter.patch(
   "/install/store",
 
   uploudAvatar.single("storeAvatar"),
+  photoController.UploudImageStoreConfig.bind(photoController)
+);
+photoRouter.patch(
+  "/store",
+
+  uploudAvatar.single("storeAvatar"),
   photoController.UploudImageStore.bind(photoController)
 );

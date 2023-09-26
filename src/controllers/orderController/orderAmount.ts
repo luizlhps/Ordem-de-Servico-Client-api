@@ -8,7 +8,14 @@ class OrderServicePrice {
       const currentService = await serviceModel.findById(serviceId);
       if (!currentService) throw new Error("Serviço não encontrado");
 
-      await this.updateServicePrice(orderId, serviceId, currentService.amount, services.length);
+      await this.updateServicePrice(
+        currentService.title,
+        currentService.description,
+        orderId,
+        serviceId,
+        currentService.amount,
+        services.length
+      );
 
       amount += currentService.amount;
     }
@@ -16,6 +23,8 @@ class OrderServicePrice {
   }
 
   private async updateServicePrice(
+    title: string,
+    description: string,
     orderId: string,
     serviceId: string,
     currentServicePrice: number,
@@ -43,6 +52,8 @@ class OrderServicePrice {
       }
     } else {
       const serviceOrder = await servicePrice.create({
+        title,
+        description,
         service: serviceId,
         price: currentServicePrice,
         order: orderId,

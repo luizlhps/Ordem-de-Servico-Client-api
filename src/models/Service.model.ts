@@ -20,6 +20,8 @@ export const serviceCounter = model(
 export const servicePrice = model(
   "servicePrice",
   new Schema({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
     service: { type: Schema.Types.ObjectId, ref: "Service", required: true },
     price: { type: Number, required: true },
     order: { type: Schema.Types.ObjectId, ref: "Order", required: true },

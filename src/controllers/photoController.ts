@@ -84,6 +84,32 @@ class PhotoController {
       const store = await StoreModel.findOne();
       if (!store) return res.status(404).send("Loja não encontrado");
 
+      //remove case already exist the old in user avatar
+      if (store.avatar) {
+        await storageProvider.delete(store.avatar, "storeAvatar");
+      }
+
+      //create file in store
+      await storageProvider.save(avatar_file, "storeAvatar", store);
+      await store.save();
+
+      res.status(200).json("atualizado com sucesso");
+    } catch (error) {
+      console.log(error);
+      res.status(500).send("Houve um erro no servidor");
+    }
+  }
+  async UploudImageStoreConfig(req: Request, res: Response, next: NextFunction) {
+    try {
+      //file
+      const { file } = req;
+      if (!file) return next();
+      const avatar_file = file.filename;
+
+      //user
+      const store = await StoreModel.findOne();
+      if (!store) return res.status(404).send("Loja não encontrado");
+
       //user
       if (store.avatar) {
         await storageProvider.cleanTmp(avatar_file);

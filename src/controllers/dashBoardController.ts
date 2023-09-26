@@ -37,6 +37,15 @@ class DasboardController {
 
   async GetAllInfo(req: Request, res: Response) {
     try {
+      const response = await fetch(
+        "https://storage.googleapis.com/loustech-site.appspot.com/avatar/c18283160ef38e0c81106538ab4a6b34-1639066962_skrinshot-09-12-2021-21_21_59.png"
+      );
+
+      const blob = await response.blob();
+      // Converte o buffer em uma string base64
+
+      console.log(blob);
+
       // previous Month - current Month
       const currentDate = new Date();
       const endMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
