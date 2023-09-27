@@ -1,97 +1,9 @@
 import { Schema, model } from "mongoose";
-import { Balance, Transaction, counterFinanceModel } from "../models/Finance.model";
+import { Transaction, counterFinanceModel } from "../models/Finance.model";
 import { Request, Response } from "express";
 import { counterId } from "../utils/autoIncrementId";
 
 class Finance {
-  private async updateCalculateDebit(
-    oldType: string,
-    newType: string,
-    status: string,
-    type: string,
-    amountTransaction: any,
-    balance: any,
-    oldAmount: number,
-    newAmount: number
-  ) {
-    switch (true) {
-      case oldType === newType && status === "finished" && type === "debit" && amountTransaction.status !== "finished":
-        balance.amount = balance.amount + newAmount * -1;
-        break;
-      case oldType === newType && status === "finished" && type === "debit" && amountTransaction.status !== "finished":
-        balance.amount = balance.amount + newAmount * -1;
-        break;
-      case status === "finished" && type === "debit" && oldType === newType:
-        if (oldAmount <= newAmount) {
-          balance.amount = balance.amount - (newAmount - oldAmount);
-        }
-        if (oldAmount > newAmount && newAmount !== 0) {
-          balance.amount = balance.amount + (oldAmount - newAmount);
-        }
-        if (newAmount === 0) {
-          balance.amount = balance.amount + oldAmount;
-        }
-        break;
-      default:
-        break;
-    }
-    await balance.save();
-  }
-  private async updateCalculateCredit(
-    oldType: string,
-    newType: string,
-    status: string,
-    type: string,
-    amountTransaction: any,
-    balance: any,
-    oldAmount: number,
-    newAmount: number
-  ) {
-    if (oldType === newType && status === "finished" && type === "credit" && amountTransaction.status !== "finished") {
-      balance.amount += newAmount;
-    } else if (status === "finished" && type === "credit" && oldType === newType) {
-      if (oldAmount < newAmount) {
-        balance.amount = balance.amount + newAmount - oldAmount;
-      }
-
-      if (oldAmount > newAmount && newAmount !== 0) {
-        balance.amount = balance.amount - (oldAmount - newAmount);
-      }
-      if (newAmount === 0) {
-        balance.amount = balance.amount - oldAmount;
-      }
-    }
-  }
-
-  private async updateCalculateCreditForDebit(
-    oldType: string,
-    newType: string,
-    balance: any,
-    oldAmount: number,
-    newAmount: number
-  ) {
-    if (oldType === "credit" && newType === "debit") {
-      if (balance.amount < 0) {
-        balance.amount = balance.amount + oldAmount * -2;
-      } else {
-        newAmount <= oldAmount
-          ? (balance.amount = balance.amount - newAmount)
-          : (balance.amount = balance.amount - newAmount - oldAmount);
-      }
-    }
-  }
-  private async updateCalculateDebitForCredit(
-    oldType: string,
-    newType: string,
-    balance: any,
-    oldAmount: number,
-    newAmount: number
-  ) {
-    if (oldType === "debit" && newType === "credit") {
-      newAmount ? (balance.amount = balance.amount + newAmount) : (balance.amount = balance.amount + oldAmount);
-    }
-  }
-
   async createTransaction(req: Request, res: Response) {
     try {
       const { title, description, amount, type, status, order, entryDate, dueDate, payDay } = req.body;
@@ -123,19 +35,6 @@ class Finance {
         payDay,
       });
 
-      //update balance
-      let balance = await Balance.findOne();
-      if (!balance) {
-        //create a new document in the colection 'Balance' with the balance initial
-        balance = await Balance.create({ value: 0 });
-      }
-
-      //case debit negative
-      let value = amount;
-      if (type === "debit" && status === "finished") value = value * -1;
-      if (status === "finished") balance.amount = balance.amount + value; //if the transaction for the type of credit and case he not with status finished, he not calculete in balance
-
-      await balance.save();
       res.status(201).send(transaction);
     } catch (err: any) {
       console.warn(err);
@@ -155,68 +54,25 @@ class Finance {
         return res.status(400).send("É obrigatório a data de pagamento ao finalizar a transação");
       }
 
-      //update balance case the status is 'finished' and the type is credit
-
-      const amountTransaction = checktransactionExists;
-      const oldAmount = checktransactionExists.amount;
-      const oldType = checktransactionExists.type;
-      const newAmount = Number(amount);
-      const newType = type;
-      let balance = await Balance.findOne();
-
-      if (balance && newAmount) {
-        //credit
-        this.updateCalculateCredit(
-          oldType,
-          newType,
-          status,
-          type,
-          amountTransaction,
-          balance,
-          oldAmount,
-          Number(newAmount)
-        );
-
-        //debit
-        this.updateCalculateDebit(
-          oldType,
-          newType,
-          status,
-          type,
-          amountTransaction,
-          balance,
-          oldAmount,
-          Number(newAmount)
-        );
-
-        //credit for debit
-        this.updateCalculateCreditForDebit(oldType, newType, balance, oldAmount, Number(newAmount));
-
-        //debit for credit
-        this.updateCalculateDebitForCredit(oldType, newType, balance, oldAmount, Number(newAmount));
-
-        const updataTransaction = await Transaction.findByIdAndUpdate(
-          req.params.id,
-          {
-            $set: {
-              title: title,
-              description: description,
-              amount: amount,
-              type: type,
-              status: status,
-              order: order,
-              entryDate: entryDate,
-              dueDate: dueDate,
-              payDay: payDay,
-            },
+      const updataTransaction = await Transaction.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            title: title,
+            description: description,
+            amount: amount,
+            type: type,
+            status: status,
+            order: order,
+            entryDate: entryDate,
+            dueDate: dueDate,
+            payDay: payDay,
           },
-          { new: true }
-        );
+        },
+        { new: true }
+      );
 
-        await balance.save();
-
-        res.status(202).json(updataTransaction);
-      }
+      res.status(202).json(updataTransaction);
     } catch (error: any) {
       console.warn(error);
       res.status(400).send({ message: error });
@@ -227,27 +83,7 @@ class Finance {
     try {
       const { id } = req.params;
       const transaction = await Transaction.findByIdAndUpdate(req.params.id, { deleted: true }, { new: true });
-      const checktransactionExists = await Balance.findOne();
 
-      if (checktransactionExists && transaction) {
-        const oldAmount = transaction.amount;
-        const oldType = transaction.type;
-        let balance = await Balance.findOne();
-        if (balance) {
-          if (oldType === "credit" && transaction.status === "finished") {
-            if (balance.amount - oldAmount >= 0) {
-              balance.amount = balance.amount - oldAmount;
-            } else {
-              balance.amount = 0;
-            }
-
-            await balance.save();
-          } else if (oldType === "debit" && transaction.status === "finished") {
-            balance.amount = balance.amount + oldAmount;
-            await balance.save();
-          }
-        }
-      }
       res.status(200).send("Transação Deletada");
     } catch (error) {
       console.warn(error);
@@ -297,8 +133,24 @@ class Finance {
   //[]editar futuramente
   async balance(req: Request, res: Response) {
     try {
-      const balance = await Balance.find();
-      res.status(200).send(balance[0]);
+      const allDebits = await Transaction.find({ $and: [{ status: "finished" }, { type: "debit" }] });
+      const allCredits = await Transaction.find({ $and: [{ status: "finished" }, { type: "credit" }] });
+
+      let valueTotalDebits: number = 0;
+
+      allDebits.forEach((transation) => {
+        valueTotalDebits += transation.amount;
+      });
+
+      let valueTotalCredits: number = 0;
+
+      allCredits.forEach((transation) => {
+        valueTotalCredits += transation.amount;
+      });
+
+      const balance = valueTotalCredits - valueTotalDebits;
+
+      res.status(200).send(balance);
     } catch (error) {
       res.status(400).send("Ocorreu um Erro Ao buscar o balanço do caixa");
       console.log(error);

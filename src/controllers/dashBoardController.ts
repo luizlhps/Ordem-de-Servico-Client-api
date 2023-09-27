@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Balance, Transaction } from "../models/Finance.model";
+import { Transaction } from "../models/Finance.model";
 
 import { amountTotal } from "./dasboardController/amountTotal";
 import { finished } from "stream";
@@ -44,8 +44,6 @@ class DasboardController {
       const blob = await response.blob();
       // Converte o buffer em uma string base64
 
-      console.log(blob);
-
       // previous Month - current Month
       const currentDate = new Date();
       const endMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -67,8 +65,22 @@ class DasboardController {
       const CountTransactions = await Transaction.countDocuments();
       if (!CountTransactions) throw res.status(400).send("Houve um erro ao buscar o total de transações");
 
-      const balance = await Balance.findOne();
-      if (!balance) throw res.status(400).send("Houve um erro ao buscar o balanço do caixa");
+      const allDebits = await Transaction.find({ $and: [{ status: "finished" }, { type: "debit" }] });
+      const allCredits = await Transaction.find({ $and: [{ status: "finished" }, { type: "credit" }] });
+
+      let valueTotalDebits: number = 0;
+
+      allDebits.forEach((transation) => {
+        valueTotalDebits += transation.amount;
+      });
+
+      let valueTotalCredits: number = 0;
+
+      allCredits.forEach((transation) => {
+        valueTotalCredits += transation.amount;
+      });
+
+      const balance = valueTotalCredits - valueTotalDebits;
 
       //finished
       const creditPercetege = amountTotal.calculateCreditPercetegeMonth({
@@ -147,7 +159,7 @@ class DasboardController {
         totalCount: totalCount,
         totalCountPrevMonth,
         percetege: totalCountPercentege,
-        balance: { ...balancePercetege, totalAmount: balance.amount },
+        balance: { ...balancePercetege, totalAmount: balance },
         pending: {
           transaction: { totalCount: totalCountTransactionsPedding },
           credit: creditPercetegePending,

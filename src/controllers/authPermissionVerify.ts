@@ -70,7 +70,6 @@ class AuthPermissionVerify {
 
         const { permissions } = userGroup;
 
-        console.log(permissions);
         if (!permissions?.view?.includes(parameter)) {
           if (permissions?.view?.includes("adminMaster")) {
             return next();

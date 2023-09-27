@@ -6,7 +6,7 @@ import bcript from "bcryptjs";
 import { AuthGroupModel, authGroupCounter } from "../models/AuthGroup.model";
 import { StatusModel } from "../models/Status.model";
 import { counterId } from "../utils/autoIncrementId";
-import { Balance, counterFinanceModel } from "../models/Finance.model";
+import { counterFinanceModel } from "../models/Finance.model";
 
 class ConfigApplication {
   async store(req: Request, res: Response, next: NextFunction) {
@@ -41,9 +41,6 @@ class ConfigApplication {
         const incrementNextIDStatus = (await counterId(counterFinanceModel)).getNextId();
         await StatusModel.create({ id: await incrementNextIDStatus, name: "Aberto" });
       }
-
-      //Create balance
-      await Balance.create({ value: 0 });
 
       //Create Storage info
       if (!already) {

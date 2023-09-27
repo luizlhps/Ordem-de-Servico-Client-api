@@ -40,16 +40,6 @@ export const counterFinanceModel = model(
   })
 );
 
-export const Balance = model<IBalance>(
-  "Balance",
-  new Schema({
-    amount: {
-      type: Number,
-      default: 0,
-    },
-  })
-);
-
 export const Transaction = model<ITransaction>(
   "Transaction",
   new Schema(
