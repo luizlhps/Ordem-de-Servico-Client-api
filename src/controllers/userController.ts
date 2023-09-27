@@ -100,6 +100,20 @@ class UserController {
   async updateOfficials(req: Express.Request, res: Express.Response) {
     try {
       const userID = req.params.id;
+
+      const userAlreadyExist = await User.findById({ _id: userID });
+      const userGroup = await AuthGroupModel.findOne({ name: "adminMaster" });
+
+      if (!userAlreadyExist)
+        return res.status(404).json({ error: true, code: "user.notFound", message: "Usuário não encontrado" });
+      if (!userGroup)
+        return res.status(404).json({ error: true, code: "group.notFound", message: "Cargo não encontrado" });
+
+      if (userAlreadyExist.group.toString() === userGroup._id.toString())
+        return res
+          .status(404)
+          .json({ error: true, code: "user.unauthorized", message: "Não é permitido editar o adminMaster" });
+
       const updateFields: any = {
         name: req.body.name,
         phone: req.body.phone,
@@ -121,7 +135,7 @@ class UserController {
           runValidators: true,
         }
       );
-      if (!user) res.status(404).json({ error: true, code: "user.notFound", message: "Usuário não encontrado" });
+
       res.status(201).send("user");
     } catch (error: any) {
       console.log(error);
@@ -209,6 +223,8 @@ class UserController {
         ],
       });
 
+      const totalCountWithoutAdminMaster = totalCount - 1;
+
       const user = await User.aggregate([
         {
           $match: {
@@ -232,9 +248,15 @@ class UserController {
         { $unset: "password" },
       ])
         .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
-        .limit(Number(limit) === 0 ? totalCount : Number(limit));
+        .limit(Number(limit) === 0 ? totalCountWithoutAdminMaster : Number(limit));
 
-      res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), user });
+      const filteredUsers = user.filter((user) => {
+        return user.group.name !== "adminMaster";
+      });
+
+      res
+        .status(200)
+        .json({ total: totalCountWithoutAdminMaster, page: Number(page), limit: Number(limit), user: filteredUsers });
     } catch (error) {
       console.warn(error);
       res.status(500).json({ message: "Erro ao achar a nota" });

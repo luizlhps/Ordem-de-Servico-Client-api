@@ -113,7 +113,7 @@ class AmountTotal {
       percetege: this.calculatePercetege(monthCredit, monthDebit),
       totalAmountCredit: monthCredit,
       totalAmountDebit: monthDebit,
-      totalAmountMonth: monthDebit + monthCredit,
+      totalAmountMonth: monthCredit - monthDebit,
     };
     return calculateCredit;
   }
