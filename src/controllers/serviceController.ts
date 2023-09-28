@@ -5,18 +5,18 @@ import { counterId } from "../utils/autoIncrementId";
 
 class Service {
   async createService(req: Request, res: Response) {
-    const { title, description, amount } = req.body;
-
-    const isValid = /^\d+(\.\d{1,2})?$/.test(amount.toString());
-
-    if (!isValid) return res.status(400).json({ message: "O número após o ponto deve ter no máximo 2 dígitos.." });
-    if (!title) return res.status(400).send({ message: "Título é necessario" });
-    if (!description) return res.status(400).send({ message: "Descrição é necessaria" });
-    if (!amount) return res.status(400).send({ message: "Valor é necessario" });
-
-    const incrementId = (await counterId(serviceCounter)).getNextId;
-
     try {
+      const { title, description, amount } = req.body;
+
+      const isValid = /^\d+(\.\d{1,2})?$/.test(amount.toString());
+
+      if (!isValid) return res.status(400).json({ message: "O número após o ponto deve ter no máximo 2 dígitos.." });
+      if (!title) return res.status(400).send({ message: "Título é necessario" });
+      if (!description) return res.status(400).send({ message: "Descrição é necessaria" });
+      if (!amount) return res.status(400).send({ message: "Valor é necessario" });
+
+      const incrementId = (await counterId(serviceCounter)).getNextId;
+
       const service = await serviceModel.create({
         id: await incrementId(),
         title,
@@ -57,14 +57,14 @@ class Service {
     }
   }
   async getSearch(req: Request, res: Response) {
-    const { filter, page = 1, limit = 10 } = req.query;
-    if (typeof filter !== "string") {
-      return res.status(400).json({ message: "O parâmetro 'filter' deve ser uma string" });
-    }
-
-    const numberId = parseInt(filter);
-
     try {
+      const { filter, page = 1, limit = 10 } = req.query;
+      if (typeof filter !== "string") {
+        return res.status(400).json({ message: "O parâmetro 'filter' deve ser uma string" });
+      }
+
+      const numberId = parseInt(filter);
+
       const service = await serviceModel
         .find({
           $and: [

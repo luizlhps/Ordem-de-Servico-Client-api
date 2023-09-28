@@ -429,10 +429,10 @@ class OrderController {
   }
 
   async deleteOrder(req: Request, res: Response) {
-    const { id } = req.params;
-
-    if (!id) return res.status(404).json({ message: "Id para a exclusão é obrigátorio" });
     try {
+      const { id } = req.params;
+
+      if (!id) return res.status(404).json({ message: "Id para a exclusão é obrigátorio" });
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
 

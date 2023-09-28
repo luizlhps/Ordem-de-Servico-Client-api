@@ -46,11 +46,11 @@ class CustomerController {
     }
   }
   async getAll(req: Request, res: Response) {
-    const { filter, page = 1, limit = 10 } = req.query;
-
-    const numberId = Number(filter);
-
     try {
+      const { filter, page = 1, limit = 10 } = req.query;
+
+      const numberId = Number(filter);
+
       const customer = await CostumerModel.find({
         $and: [
           {

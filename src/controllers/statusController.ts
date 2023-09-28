@@ -4,9 +4,9 @@ import { counterId } from "../utils/autoIncrementId";
 
 class StatusControler {
   async create(req: Request, res: Response) {
-    const { name } = req.body;
-    if (!name) return res.status(400).send({ message: "É necessário o nome do status" });
     try {
+      const { name } = req.body;
+      if (!name) return res.status(400).send({ message: "É necessário o nome do status" });
       const incrementId = (await counterId(statusCounter)).getNextId();
 
       const status = await StatusModel.create({
@@ -22,9 +22,9 @@ class StatusControler {
   }
 
   async getAll(req: Request, res: Response) {
-    const { filter, page = 1, limit = 5 } = req.query;
-    const filterId = Number(filter);
     try {
+      const { filter, page = 1, limit = 5 } = req.query;
+      const filterId = Number(filter);
       const status = await StatusModel.find({
         $and: [
           {

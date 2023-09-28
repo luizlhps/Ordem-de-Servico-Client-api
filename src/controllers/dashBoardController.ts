@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Transaction } from "../models/Finance.model";
+import { ITransaction, Transaction } from "../models/Finance.model";
 
 import { amountTotal } from "./dasboardController/amountTotal";
 import { finished } from "stream";
@@ -37,13 +37,6 @@ class DasboardController {
 
   async GetAllInfo(req: Request, res: Response) {
     try {
-      const response = await fetch(
-        "https://storage.googleapis.com/loustech-site.appspot.com/avatar/c18283160ef38e0c81106538ab4a6b34-1639066962_skrinshot-09-12-2021-21_21_59.png"
-      );
-
-      const blob = await response.blob();
-      // Converte o buffer em uma string base64
-
       // previous Month - current Month
       const currentDate = new Date();
       const endMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -65,18 +58,31 @@ class DasboardController {
       const CountTransactions = await Transaction.countDocuments();
       if (!CountTransactions) throw res.status(400).send("Houve um erro ao buscar o total de transações");
 
-      const allDebits = await Transaction.find({ $and: [{ status: "finished" }, { type: "debit" }] });
-      const allCredits = await Transaction.find({ $and: [{ status: "finished" }, { type: "credit" }] });
+      //Balance
+      const allTransactionsDebits: ITransaction[] = [];
+      const allTransactionsCredits: ITransaction[] = [];
+
+      const Alltransactions = await Transaction.find({ deleted: false });
+
+      Alltransactions.forEach((transaction) => {
+        if (transaction.status === "finished" && transaction.type === "credit") {
+          allTransactionsCredits.push(transaction);
+        }
+
+        if (transaction.status === "finished" && transaction.type === "debit") {
+          allTransactionsDebits.push(transaction);
+        }
+      });
 
       let valueTotalDebits: number = 0;
 
-      allDebits.forEach((transation) => {
+      allTransactionsDebits.forEach((transation) => {
         valueTotalDebits += transation.amount;
       });
 
       let valueTotalCredits: number = 0;
 
-      allCredits.forEach((transation) => {
+      allTransactionsCredits.forEach((transation) => {
         valueTotalCredits += transation.amount;
       });
 
