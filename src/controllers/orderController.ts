@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
-import mongoose, { Types, Schema, Document, Error } from "mongoose";
-import { custom } from "joi";
+import mongoose from "mongoose";
 import { orderModel, ordersCounter } from "../models/Ordermodel";
-import { serviceModel, servicePrice } from "../models/Service.model";
 import { StatusModel } from "../models/Status.model";
 import { ObjectId } from "bson";
 import { counterId } from "../utils/autoIncrementId";
 import { CostumerModel } from "../models/Costomer.model";
 import { orderServicePrice } from "./orderController/orderAmount";
-import { authPermissionVerify } from "./authPermissionVerify";
 import { IRequest } from "../types/requestType";
 
 class OrderController {
@@ -60,101 +57,130 @@ class OrderController {
   async getAllOrders(req: IRequest, res: Response) {
     try {
       const { filter, page = 1, limit = 10 } = req.query;
+      const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
 
-      const numberId = Number(filter);
-      try {
-        const count = await orderModel.countDocuments({
-          $and: [
-            {
-              $or: [
-                { equipment: { $regex: filter, $options: "i" } },
-                { brand: { $regex: filter, $options: "i" } },
-                { model: { $regex: filter, $options: "i" } },
-                { defect: { $regex: filter, $options: "i" } },
-                { observation: { $regex: filter, $options: "i" } },
-                { id: numberId ? numberId : null },
-              ],
-            },
-            { deleted: false },
-          ],
-        });
+      const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
+      const numberId = Number(transformFilterInObject?.search);
 
-        const orders = await orderModel
-          .aggregate([
-            {
-              $match: {
-                $and: [
-                  {
-                    $or: [
-                      { equipment: { $regex: filter, $options: "i" } },
-                      { brand: { $regex: filter, $options: "i" } },
-                      { model: { $regex: filter, $options: "i" } },
-                      { defect: { $regex: filter, $options: "i" } },
-                      { observation: { $regex: filter, $options: "i" } },
-                      { id: numberId ? numberId : null },
-                    ],
-                  },
-                  { deleted: false },
-                ],
+      const paramsOfFilter = {
+        $and: [
+          {
+            $or: [
+              {
+                equipment: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
               },
+              {
+                brand: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                model: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                defect: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                observation: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              { id: numberId ? numberId : null },
+            ],
+          },
+
+          //filter search
+          transformFilterInObject?.status ? { status: new ObjectId(transformFilterInObject?.status) } : {},
+          transformFilterInObject?.customer ? { customer: new ObjectId(transformFilterInObject?.customer) } : {},
+
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
+
+          { deleted: false },
+        ],
+      };
+
+      const totalOrdersInFetch = await orderModel.countDocuments({
+        ...paramsOfFilter,
+      });
+
+      const orders = await orderModel
+        .aggregate([
+          {
+            $match: {
+              ...paramsOfFilter,
             },
-            /*from: <nome da Coleção onde vamos buscar os dados>,
+          },
+          /*from: <nome da Coleção onde vamos buscar os dados>,
               localField: <nome do atributo usado na condição de igualdade, na coleção origem, aqui chamada de Coleção>,
               foreignField: <nome do atributo usado na condição de igualdade na tabela destino, onde buscaremos os dados>,
               as: <atributo que receberá os novos dados > */
-            {
-              $lookup: {
-                from: "serviceprices", // collection selecionada
-                localField: "_id", // o campo que compara com a coletion serviceprices
-                foreignField: "order", // campo que vai comparar com o id de cima localfield
-                as: "servicesPrices", // nome
-              },
+          {
+            $lookup: {
+              from: "serviceprices", // collection selecionada
+              localField: "_id", // o campo que compara com a coletion serviceprices
+              foreignField: "order", // campo que vai comparar com o id de cima localfield
+              as: "servicesPrices", // nome
             },
+          },
 
-            {
-              $lookup: {
-                from: "status",
-                localField: "status",
-                foreignField: "_id",
-                as: "status",
-              },
+          {
+            $lookup: {
+              from: "status",
+              localField: "status",
+              foreignField: "_id",
+              as: "status",
             },
+          },
 
-            {
-              $lookup: {
-                from: "services",
-                localField: "services",
-                foreignField: "_id",
-                as: "services",
-              },
+          {
+            $lookup: {
+              from: "services",
+              localField: "services",
+              foreignField: "_id",
+              as: "services",
             },
+          },
 
-            {
-              $lookup: {
-                from: "customers",
-                localField: "customer",
-                foreignField: "_id",
-                as: "customer",
-              },
+          {
+            $lookup: {
+              from: "customers",
+              localField: "customer",
+              foreignField: "_id",
+              as: "customer",
             },
+          },
 
-            { $unwind: "$customer" },
-            { $unwind: "$status" },
-          ])
-          .sort({ id: -1 })
-          .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
-          .limit(Number(limit) === 0 ? count : Number(limit));
-        /*  .populate(["status", "services", "orders", "customer"]); */
+          { $unwind: "$customer" },
+          { $unwind: "$status" },
+        ])
+        .sort({ id: -1 })
+        .skip(Number(page) === 0 ? 0 : (Number(page) - 1) * Number(limit))
+        .limit(Number(limit) === 0 ? totalOrdersInFetch : Number(limit));
 
-        res.status(200).json({
-          total: count,
-          page: Number(page),
-          limit: Number(limit),
-          orders,
-        });
-      } catch (err: any) {
-        throw new Error(err);
-      }
+      res.status(200).json({
+        total: totalOrdersInFetch,
+        page: Number(page),
+        limit: Number(limit),
+        orders,
+      });
     } catch (error: any) {
       console.warn(error);
       res.status(400).send({ message: error.message });
@@ -170,21 +196,7 @@ class OrderController {
       if (!costumer) return res.status(404).json({ message: "Cliente não encontrado" });
 
       const numberId = Number(filter);
-      const queryFilter = {
-        $and: [
-          {
-            $or: [
-              { equipment: { $regex: filter, $options: "i" } },
-              { brand: { $regex: filter, $options: "i" } },
-              { model: { $regex: filter, $options: "i" } },
-              { defect: { $regex: filter, $options: "i" } },
-              { observation: { $regex: filter, $options: "i" } },
-              { id: numberId ? numberId : null },
-            ],
-          },
-          { deleted: false },
-        ],
-      };
+
       const totalCount = await orderModel.countDocuments({ customer: costumer._id });
 
       // Consulta os pedidos do cliente com a paginação

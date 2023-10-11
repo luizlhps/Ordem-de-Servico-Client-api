@@ -24,13 +24,28 @@ class StatusControler {
   async getAll(req: Request, res: Response) {
     try {
       const { filter, page = 1, limit = 5 } = req.query;
-      const filterId = Number(filter);
+
+      const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
+      const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
+
+      const filterId = Number(transformFilterInObject?.search);
+
       const status = await StatusModel.find({
         $and: [
           {
-            $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+            $or: [{ name: { $regex: searchFilter, $options: "i" } }, { id: filterId ? filterId : null }],
           },
           { deleted: false },
+
+          //Filter of date
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
         ],
       })
         .sort({ createdAt: -1 })
@@ -40,9 +55,19 @@ class StatusControler {
       const totalCount = await StatusModel.countDocuments({
         $and: [
           {
-            $or: [{ name: { $regex: filter, $options: "i" } }, { id: filterId ? filterId : null }],
+            $or: [{ name: { $regex: searchFilter, $options: "i" } }, { id: filterId ? filterId : null }],
           },
           { deleted: false },
+
+          //Filter of date
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
         ],
       });
 

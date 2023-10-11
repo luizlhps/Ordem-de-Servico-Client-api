@@ -63,19 +63,32 @@ class Service {
         return res.status(400).json({ message: "O parâmetro 'filter' deve ser uma string" });
       }
 
-      const numberId = parseInt(filter);
+      const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
+      const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
+
+      const numberId = Number(transformFilterInObject?.search);
 
       const service = await serviceModel
         .find({
           $and: [
             {
               $or: [
-                { title: { $regex: filter, $options: "i" } },
-                { description: { $regex: filter, $options: "i" } },
+                { title: { $regex: searchFilter, $options: "i" } },
+                { description: { $regex: searchFilter, $options: "i" } },
                 { id: numberId ? numberId : null },
               ],
             },
             { deleted: false },
+
+            //Filter of date
+            transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+              ? {
+                  dateEntry: {
+                    $gte: new Date(transformFilterInObject?.dateFrom),
+                    $lte: new Date(transformFilterInObject?.dateTo),
+                  },
+                }
+              : {},
           ],
         })
         .sort({ updatedAt: -1 })
@@ -86,16 +99,25 @@ class Service {
         $and: [
           {
             $or: [
-              { title: { $regex: filter, $options: "i" } },
-              { description: { $regex: filter, $options: "i" } },
+              { title: { $regex: searchFilter, $options: "i" } },
+              { description: { $regex: searchFilter, $options: "i" } },
               { id: numberId ? numberId : null },
             ],
           },
           { deleted: false },
+
+          //Filter of date
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
         ],
       });
 
-      if (service.length < 1) return res.status(404).json("nada encontrado");
       res.status(200).json({ Total: totalCount, Page: Number(page), limit: Number(limit), service });
     } catch (error) {
       console.warn(error);

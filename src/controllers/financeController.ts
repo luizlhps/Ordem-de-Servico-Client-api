@@ -93,18 +93,32 @@ class Finance {
 
   async searchTransaction(req: Request, res: Response) {
     const { filter, page = 1, limit = 10 } = req.query;
-    const numberId = Number(filter);
+
+    const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
+    const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
+
+    const numberId = Number(transformFilterInObject?.search);
 
     try {
       const transaction = await Transaction.find({
         $and: [
           {
             $or: [
-              { title: { $regex: filter, $options: "i" } },
-              { description: { $regex: filter, $options: "i" } },
+              { title: { $regex: searchFilter, $options: "i" } },
+              { description: { $regex: searchFilter, $options: "i" } },
               { id: numberId ? numberId : null },
             ],
           },
+          //Filter of date
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
+
           { deleted: false },
         ],
       })
@@ -115,11 +129,22 @@ class Finance {
         $and: [
           {
             $or: [
-              { title: { $regex: filter, $options: "i" } },
-              { description: { $regex: filter, $options: "i" } },
+              { title: { $regex: searchFilter, $options: "i" } },
+              { description: { $regex: searchFilter, $options: "i" } },
               { id: numberId ? numberId : null },
             ],
           },
+
+          //Filter of date
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
+
           { deleted: false },
         ],
       });

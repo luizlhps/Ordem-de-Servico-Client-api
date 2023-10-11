@@ -84,15 +84,28 @@ class AuthGroupController {
   async getAll(req: Request, res: Response) {
     const { filter, page = 1, limit = 10 } = req.query;
 
-    const numberId = Number(filter);
+    const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
+    const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
+
+    const numberId = Number(transformFilterInObject?.search);
 
     try {
       const totalCount = await AuthGroupModel.countDocuments({
         $and: [
           {
-            $or: [{ name: { $regex: filter, $options: "i" } }, { id: numberId ? numberId : null }],
+            $or: [{ name: { $regex: searchFilter, $options: "i" } }, { id: numberId ? numberId : null }],
           },
           { deleted: false },
+
+          //Filter of date
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
         ],
       });
 
@@ -101,12 +114,23 @@ class AuthGroupController {
           $match: {
             $and: [
               { deleted: false },
+
               {
                 $or: [
-                  { name: { $ne: "adminMaster", $regex: filter, $options: "i" } },
+                  { name: { $ne: "adminMaster", $regex: searchFilter, $options: "i" } },
                   { id: numberId ? numberId : null },
                 ],
               },
+
+              //Filter of date
+              transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+                ? {
+                    dateEntry: {
+                      $gte: new Date(transformFilterInObject?.dateFrom),
+                      $lte: new Date(transformFilterInObject?.dateTo),
+                    },
+                  }
+                : {},
             ],
           },
         },
