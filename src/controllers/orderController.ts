@@ -198,9 +198,6 @@ class OrderController {
   async getcustomerOrders(req: Request, res: Response) {
     try {
       const { customerId, filter, page = 1, limit = 10, deleted } = req.query;
-      console.log(this);
-
-      console.log(deleted);
 
       const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
 

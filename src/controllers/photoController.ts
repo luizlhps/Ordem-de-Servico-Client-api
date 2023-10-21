@@ -48,8 +48,6 @@ class PhotoController {
       const avatar_file = file.filename;
 
       if (user.avatar) {
-        console.log(user.avatar);
-
         await storageProvider.cleanTmp(avatar_file);
         return res.status(401).send({
           error: true,

@@ -26,8 +26,6 @@ class CustomerController {
 
       const incrementId = (await counterId(customersCounter)).getNextId();
 
-      console.log(incrementId);
-
       const cliente = await customerModel.create({
         id: await incrementId,
         name,
