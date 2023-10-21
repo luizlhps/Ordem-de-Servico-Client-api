@@ -21,11 +21,15 @@ To run the application locally and take a closer look, follow these steps:
 Create a .env file and add 
 
 PORT=8000
+
 BUCKET = "your bucket firebase"
+
 TOKEN_SECRET = anything token string
+
 DISK = "firebase"  // firebase or localhost 
 
 FIREBASE_CLIENT_EMAIL = "firebase-adminsd"
+
 FIREBASE_PRIVATE_KEY = "-----BEGIN PRIVATE KEY----------END PRIVATE KEY-----\n
 
 DATABASE = "mongodb+srv://"    
