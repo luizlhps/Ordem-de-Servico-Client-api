@@ -4,7 +4,7 @@ import { StoreModel } from "../models/store.model";
 import { User, UserCounter } from "../models/User.model";
 import bcript from "bcryptjs";
 import { AuthGroupModel, authGroupCounter } from "../models/AuthGroup.model";
-import { StatusModel } from "../models/Status.model";
+import { StatusModel, statusCounter } from "../models/Status.model";
 import { counterId } from "../utils/autoIncrementId";
 import { counterFinanceModel } from "../models/Finance.model";
 
@@ -28,17 +28,17 @@ class ConfigApplication {
           .status(401)
           .send({ error: true, code: "system.AlreadyConfig.Store", message: "O store ja esta configurado." });
       }
-      //Create status
-      const incrementIDStatus = (await counterId(counterFinanceModel)).getNextId();
 
-      const alreadyExistStatusClose = StatusModel.findOne({ name: "Fechado" });
+      //Create status
+      const alreadyExistStatusClose = await StatusModel.findOne({ name: "Fechado" });
       if (!alreadyExistStatusClose) {
-        await StatusModel.create({ id: await incrementIDStatus, name: "Fechado" });
+        const incrementNextIDStatus = (await counterId(statusCounter)).getNextId();
+        await StatusModel.create({ id: await incrementNextIDStatus, name: "Fechado" });
       }
 
-      const alreadyExistStatusOpen = StatusModel.findOne({ name: "Fechado" });
+      const alreadyExistStatusOpen = await StatusModel.findOne({ name: "Aberto" });
       if (!alreadyExistStatusOpen) {
-        const incrementNextIDStatus = (await counterId(counterFinanceModel)).getNextId();
+        const incrementNextIDStatus = (await counterId(statusCounter)).getNextId();
         await StatusModel.create({ id: await incrementNextIDStatus, name: "Aberto" });
       }
 

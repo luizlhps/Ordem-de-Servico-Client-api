@@ -58,7 +58,7 @@ class Service {
   }
   async getSearch(req: Request, res: Response) {
     try {
-      const { filter, page = 1, limit = 10 } = req.query;
+      const { filter, page = 1, limit = 10, deleted } = req.query;
       if (typeof filter !== "string") {
         return res.status(400).json({ message: "O parâmetro 'filter' deve ser uma string" });
       }
@@ -67,6 +67,12 @@ class Service {
       const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
 
       const numberId = Number(transformFilterInObject?.search);
+
+      const deletedFilter = () => {
+        if (deleted === "true") return true;
+        if (deleted === "false") return false;
+        return null;
+      };
 
       const service = await serviceModel
         .find({
@@ -78,12 +84,12 @@ class Service {
                 { id: numberId ? numberId : null },
               ],
             },
-            { deleted: false },
+            deleted ? { deleted: deletedFilter() } : {},
 
             //Filter of date
             transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
               ? {
-                  dateEntry: {
+                  createdAt: {
                     $gte: new Date(transformFilterInObject?.dateFrom),
                     $lte: new Date(transformFilterInObject?.dateTo),
                   },
@@ -104,12 +110,12 @@ class Service {
               { id: numberId ? numberId : null },
             ],
           },
-          { deleted: false },
+          deleted ? { deleted: deletedFilter() } : {},
 
           //Filter of date
           transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
             ? {
-                dateEntry: {
+                createdAt: {
                   $gte: new Date(transformFilterInObject?.dateFrom),
                   $lte: new Date(transformFilterInObject?.dateTo),
                 },
@@ -118,7 +124,7 @@ class Service {
         ],
       });
 
-      res.status(200).json({ Total: totalCount, Page: Number(page), limit: Number(limit), service });
+      res.status(200).json({ total: totalCount, page: Number(page), limit: Number(limit), service });
     } catch (error) {
       console.warn(error);
       res.status(400).send({ message: error });

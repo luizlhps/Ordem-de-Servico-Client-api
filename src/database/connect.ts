@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 
 const connectDatabase = async () => {
-  const url: string = "mongodb+srv://admin:admin@cursonodejs.31lneyh.mongodb.net/test";
+  const url = process.env.DATABASE;
 
   try {
+    if (!url) throw new Error("url do database inválida");
+
     await mongoose.connect(url, {});
     console.log("conectado com sucesso ao mongoDb");
     // Aqui você pode definir os seus models e esquemas

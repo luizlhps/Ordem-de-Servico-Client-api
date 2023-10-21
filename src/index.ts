@@ -46,7 +46,7 @@ app.use("/order", orderRouter);
 app.use("/admin", adminRouter);
 app.use("/finance", financeRouter);
 app.use("/status", statusRouter);
-app.use("/costumers", customerRouter);
+app.use("/customers", customerRouter);
 app.use("/services", serviceRouter);
 app.use("/dashboard", dashBoardRouter);
 app.use("/authGroup", authGroupRouter);

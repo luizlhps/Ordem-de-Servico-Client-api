@@ -4,19 +4,25 @@ import { orderModel, ordersCounter } from "../models/Ordermodel";
 import { StatusModel } from "../models/Status.model";
 import { ObjectId } from "bson";
 import { counterId } from "../utils/autoIncrementId";
-import { CostumerModel } from "../models/Costomer.model";
+import { customerModel } from "../models/Customer.model";
 import { orderServicePrice } from "./orderController/orderAmount";
 import { IRequest } from "../types/requestType";
 
 class OrderController {
+  private deletedFilter = (deleted: string | string[]): boolean | null => {
+    if (deleted === "true") return true;
+    if (deleted === "false") return false;
+    return null;
+  };
+
   async createOrder(req: IRequest, res: Response) {
     const { equipment, brand, model, defect, services, status, customer, observation, dateEntry } = req.body;
     try {
-      const costumerId = await CostumerModel.findById(customer);
+      const customerId = await customerModel.findById(customer);
       const statusId = await StatusModel.findById(status);
       const incrementId = (await counterId(ordersCounter)).getNextId;
 
-      if (!costumerId) {
+      if (!customerId) {
         res.status(400).json({ message: "Cliente não encontrado" });
         return;
       }
@@ -36,14 +42,14 @@ class OrderController {
         dateEntry,
         services: [],
         status: statusId?._id,
-        customer: costumerId?._id,
+        customer: customerId?._id,
       });
 
-      const costumerIdObject = new mongoose.Types.ObjectId(costumerId?._id);
+      const customerIdObject = new mongoose.Types.ObjectId(customerId?._id);
       const orderIdObject = new mongoose.Types.ObjectId(order._id);
 
-      const costumerUpdate = await CostumerModel?.updateOne(
-        { _id: costumerIdObject },
+      const customerUpdate = await customerModel?.updateOne(
+        { _id: customerIdObject },
         { $push: { orders: orderIdObject } }
       );
 
@@ -56,11 +62,13 @@ class OrderController {
 
   async getAllOrders(req: IRequest, res: Response) {
     try {
-      const { filter, page = 1, limit = 10 } = req.query;
+      const { filter, page = 1, limit = 10, deleted } = req.query;
       const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
 
       const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
       const numberId = Number(transformFilterInObject?.search);
+
+      const deletedIsString = typeof deleted === "string" ? deleted : "";
 
       const paramsOfFilter = {
         $and: [
@@ -113,7 +121,7 @@ class OrderController {
               }
             : {},
 
-          { deleted: false },
+          deleted ? { deleted: this.deletedFilter(deletedIsString) } : {},
         ],
       };
 
@@ -187,36 +195,83 @@ class OrderController {
     }
   }
 
-  async getCostumerOrders(req: Request, res: Response) {
-    const { costumerId, filter = "", page = 1, limit = 10 } = req.query;
-    if (!costumerId) return res.status(404).json({ message: "Id do cliente é obrigatório" });
+  async getcustomerOrders(req: Request, res: Response) {
     try {
-      const costumer = await CostumerModel.findById(costumerId);
+      const { customerId, filter, page = 1, limit = 10, deleted } = req.query;
+      console.log(this);
 
-      if (!costumer) return res.status(404).json({ message: "Cliente não encontrado" });
+      console.log(deleted);
 
-      const numberId = Number(filter);
+      const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
 
-      const totalCount = await orderModel.countDocuments({ customer: costumer._id });
+      const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
+      const numberId = Number(transformFilterInObject?.search);
+
+      if (!customerId) return res.status(404).json({ message: "Id do cliente é obrigatório" });
+      const customer = await customerModel.findById(customerId);
+
+      if (!customer) return res.status(404).json({ message: "Cliente não encontrado" });
+
+      const totalCount = await orderModel.countDocuments({
+        $and: [
+          {
+            $or: [
+              { equipment: { $regex: searchFilter, $options: "i" } },
+              { brand: { $regex: searchFilter, $options: "i" } },
+              { model: { $regex: searchFilter, $options: "i" } },
+              { defect: { $regex: searchFilter, $options: "i" } },
+              { observation: { $regex: searchFilter, $options: "i" } },
+              { id: numberId ? numberId : null },
+            ],
+          },
+          deleted ? { deleted: deleted } : {},
+          //filter search
+          transformFilterInObject?.status ? { status: new ObjectId(transformFilterInObject?.status) } : {},
+
+          transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+            ? {
+                dateEntry: {
+                  $gte: new Date(transformFilterInObject?.dateFrom),
+                  $lte: new Date(transformFilterInObject?.dateTo),
+                },
+              }
+            : {},
+          { customer: customer._id },
+        ],
+      });
 
       // Consulta os pedidos do cliente com a paginação
       const orders = await orderModel
         .aggregate([
           {
             $match: {
-              customer: costumer._id,
+              customer: customer._id,
               $and: [
                 {
                   $or: [
-                    { equipment: { $regex: filter, $options: "i" } },
-                    { brand: { $regex: filter, $options: "i" } },
-                    { model: { $regex: filter, $options: "i" } },
-                    { defect: { $regex: filter, $options: "i" } },
-                    { observation: { $regex: filter, $options: "i" } },
+                    { equipment: { $regex: searchFilter, $options: "i" } },
+                    { brand: { $regex: searchFilter, $options: "i" } },
+                    { model: { $regex: searchFilter, $options: "i" } },
+                    { defect: { $regex: searchFilter, $options: "i" } },
+                    { observation: { $regex: searchFilter, $options: "i" } },
                     { id: numberId ? numberId : null },
                   ],
                 },
-                { deleted: false },
+
+                //filter search
+                transformFilterInObject?.status ? { status: new ObjectId(transformFilterInObject?.status) } : {},
+                transformFilterInObject?.customer ? { customer: new ObjectId(transformFilterInObject?.customer) } : {},
+
+                transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
+                  ? {
+                      dateEntry: {
+                        $gte: new Date(transformFilterInObject?.dateFrom),
+                        $lte: new Date(transformFilterInObject?.dateTo),
+                      },
+                    }
+                  : {},
+
+                deleted ? { deleted: deleted } : {},
               ],
             },
           },
@@ -276,7 +331,8 @@ class OrderController {
 
   async getOrderPending(req: Request, res: Response) {
     try {
-      const { filter, page = 1, limit = 10 } = req.query;
+      const { filter, page = 1, limit = 10, deleted } = req.query;
+      const deletedIsString = typeof deleted === "string" ? deleted : "";
 
       const numberId = Number(filter);
       //orders
@@ -291,9 +347,9 @@ class OrderController {
       const count = await orderModel.countDocuments({
         $and: [
           {
-            $and: [{ status: statusPending?._id }, { deleted: false }],
+            $and: [{ status: statusPending?._id }, deleted ? { deleted: this.deletedFilter(deletedIsString) } : {}],
           },
-          { deleted: false },
+          deleted ? { deleted: this.deletedFilter(deletedIsString) } : {},
         ],
       });
 
@@ -382,8 +438,8 @@ class OrderController {
 
       const orderAlreadyExists = await orderModel.findById(req.params.id);
       if (!orderAlreadyExists) return res.status(404).json({ message: "não foi possivel encontrar a O.S" });
-      const newCostumer = await CostumerModel.findById(customer);
-      if (!newCostumer) return res.status(404).json({ message: "não foi possivel encontrar o cliente" });
+      const newcustomer = await customerModel.findById(customer);
+      if (!newcustomer) return res.status(404).json({ message: "não foi possivel encontrar o cliente" });
 
       const totalAmount = () => {
         if (discount) {
@@ -392,20 +448,20 @@ class OrderController {
         return 0;
       };
 
-      //retira a ordem de dentro do costumer
+      //retira a ordem de dentro do customer
       const orderObjectId = new mongoose.Types.ObjectId(orderAlreadyExists?._id);
-      const costumerOldObject = orderAlreadyExists.customer;
+      const customerOldObject = orderAlreadyExists.customer;
 
       if (customer !== orderAlreadyExists.customer.toString()) {
-        const costumerOldUpdate = await CostumerModel?.updateOne(
-          { _id: costumerOldObject },
+        const customerOldUpdate = await customerModel?.updateOne(
+          { _id: customerOldObject },
           { $pull: { orders: orderObjectId } }
         );
 
-        const costumerIdObject = new mongoose.Types.ObjectId(newCostumer?._id);
+        const customerIdObject = new mongoose.Types.ObjectId(newcustomer?._id);
 
-        const costumerUpdate = await CostumerModel?.updateOne(
-          { _id: costumerIdObject },
+        const customerUpdate = await customerModel?.updateOne(
+          { _id: customerIdObject },
           { $push: { orders: orderObjectId } }
         );
       }

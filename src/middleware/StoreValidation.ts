@@ -24,7 +24,8 @@ class StoreValidation {
           .status(401)
           .json({ error: true, code: "system.notConfig.userAdmin", message: "O admin master não existe" });
       }
-      this.systemAlreadyConfig = storage?.aplicationConfigurate === true ? true : false;
+      this.systemAlreadyConfig =
+        storage?.aplicationConfigurate === true && storage?.alreadyExistAdmin === true ? true : false;
     }
   }
 

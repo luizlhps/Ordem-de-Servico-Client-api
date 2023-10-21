@@ -5,39 +5,44 @@ import { authPermissionVerify } from "../../controllers/authPermissionVerify";
 
 export const orderRouter = express.Router();
 
-orderRouter.get("/", auth.autheticate, authPermissionVerify.view({ parameter: "order" }), orderController.getAllOrders);
-
 orderRouter.get(
-  "/costumer",
+  "/",
   auth.autheticate,
   authPermissionVerify.view({ parameter: "order" }),
-  orderController.getCostumerOrders
+  orderController.getAllOrders.bind(orderController)
+);
+
+orderRouter.get(
+  "/customer",
+  auth.autheticate,
+  authPermissionVerify.view({ parameter: "order" }),
+  orderController.getcustomerOrders.bind(orderController)
 );
 
 orderRouter.get(
   "/pending",
   auth.autheticate,
   authPermissionVerify.view({ parameter: "order" }),
-  orderController.getOrderPending
+  orderController.getOrderPending.bind(orderController)
 );
 
 orderRouter.post(
   "/",
   auth.autheticate,
   authPermissionVerify.create({ parameter: "order" }),
-  orderController.createOrder
+  orderController.createOrder.bind(orderController)
 );
 
 orderRouter.delete(
   "/:id",
   auth.autheticate,
   authPermissionVerify.delete({ parameter: "order" }),
-  orderController.deleteOrder
+  orderController.deleteOrder.bind(orderController)
 );
 
 orderRouter.put(
   "/:id",
   auth.autheticate,
   authPermissionVerify.update({ parameter: "order" }),
-  orderController.updateOrder
+  orderController.updateOrder.bind(orderController)
 );

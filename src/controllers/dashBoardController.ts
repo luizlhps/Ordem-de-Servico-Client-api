@@ -50,14 +50,6 @@ class DasboardController {
         startPreviusMonth
       );
 
-      if (!currentMonthTransactions) throw res.status(400).send("Houve um erro ao buscar as transações");
-      if (!transactionsPreviusMonth) {
-        throw res.status(400).send("Houve um erro ao buscar as transações do mês anterior");
-      }
-
-      const CountTransactions = await Transaction.countDocuments();
-      if (!CountTransactions) throw res.status(400).send("Houve um erro ao buscar o total de transações");
-
       //Balance
       const allTransactionsDebits: ITransaction[] = [];
       const allTransactionsCredits: ITransaction[] = [];

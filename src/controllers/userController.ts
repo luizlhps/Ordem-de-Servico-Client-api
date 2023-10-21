@@ -209,12 +209,18 @@ class UserController {
   }
 
   async getAll(req: Request, res: Response) {
-    const { filter, page = 1, limit = 10 } = req.query;
+    const { filter, page = 1, limit = 10, deleted } = req.query;
 
     const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
     const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
 
     const numberId = Number(transformFilterInObject?.search);
+
+    const deletedFilter = () => {
+      if (deleted === "true") return true;
+      if (deleted === "false") return false;
+      return null;
+    };
 
     try {
       const totalCount = await User.countDocuments({
@@ -222,12 +228,12 @@ class UserController {
           {
             $or: [{ name: { $regex: searchFilter, $options: "i" } }, { id: numberId ? numberId : null }],
           },
-          { deleted: false },
+          deleted ? { deleted: deletedFilter() } : {},
 
           //Filter of date
           transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
             ? {
-                dateEntry: {
+                createdAt: {
                   $gte: new Date(transformFilterInObject?.dateFrom),
                   $lte: new Date(transformFilterInObject?.dateTo),
                 },
@@ -245,12 +251,12 @@ class UserController {
               {
                 $or: [{ name: { $regex: searchFilter, $options: "i" } }, { id: numberId ? numberId : null }],
               },
-              { deleted: false },
+              deleted ? { deleted: deletedFilter() } : {},
 
               //Filter of date
               transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
                 ? {
-                    dateEntry: {
+                    createdAt: {
                       $gte: new Date(transformFilterInObject?.dateFrom),
                       $lte: new Date(transformFilterInObject?.dateTo),
                     },

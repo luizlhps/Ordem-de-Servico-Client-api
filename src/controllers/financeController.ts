@@ -92,12 +92,18 @@ class Finance {
   }
 
   async searchTransaction(req: Request, res: Response) {
-    const { filter, page = 1, limit = 10 } = req.query;
+    const { filter, page = 1, limit = 10, deleted } = req.query;
 
     const transformFilterInObject = filter && typeof filter === "string" ? JSON.parse(filter) : undefined;
     const searchFilter = transformFilterInObject?.search ? transformFilterInObject?.search : "";
 
     const numberId = Number(transformFilterInObject?.search);
+
+    const deletedFilter = () => {
+      if (deleted === "true") return true;
+      if (deleted === "false") return false;
+      return null;
+    };
 
     try {
       const transaction = await Transaction.find({
@@ -112,14 +118,14 @@ class Finance {
           //Filter of date
           transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
             ? {
-                dateEntry: {
+                createdAt: {
                   $gte: new Date(transformFilterInObject?.dateFrom),
                   $lte: new Date(transformFilterInObject?.dateTo),
                 },
               }
             : {},
 
-          { deleted: false },
+          deleted ? { deleted: deletedFilter() } : {},
         ],
       })
         .sort({ createdAt: -1 })
@@ -138,14 +144,14 @@ class Finance {
           //Filter of date
           transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
             ? {
-                dateEntry: {
+                createdAt: {
                   $gte: new Date(transformFilterInObject?.dateFrom),
                   $lte: new Date(transformFilterInObject?.dateTo),
                 },
               }
             : {},
 
-          { deleted: false },
+          deleted ? { deleted: deletedFilter() } : {},
         ],
       });
       if (transaction.length < 1) return res.status(404).json("nada encontrado");
