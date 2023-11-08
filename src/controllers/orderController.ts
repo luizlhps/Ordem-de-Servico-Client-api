@@ -206,25 +206,51 @@ class OrderController {
 
       if (!customerId) return res.status(404).json({ message: "Id do cliente é obrigatório" });
       const customer = await customerModel.findById(customerId);
+      const deletedIsString = typeof deleted === "string" ? deleted : "";
 
       if (!customer) return res.status(404).json({ message: "Cliente não encontrado" });
 
-      const totalCount = await orderModel.countDocuments({
+      const paramsOfFilter = {
         $and: [
           {
             $or: [
-              { equipment: { $regex: searchFilter, $options: "i" } },
-              { brand: { $regex: searchFilter, $options: "i" } },
-              { model: { $regex: searchFilter, $options: "i" } },
-              { defect: { $regex: searchFilter, $options: "i" } },
-              { observation: { $regex: searchFilter, $options: "i" } },
+              {
+                equipment: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                brand: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                model: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                defect: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
+              {
+                observation: {
+                  $regex: searchFilter,
+                  $options: "i",
+                },
+              },
               { id: numberId ? numberId : null },
             ],
           },
-          deleted ? { deleted: deleted } : {},
+
           //filter search
           transformFilterInObject?.status ? { status: new ObjectId(transformFilterInObject?.status) } : {},
-
+          transformFilterInObject?.customer ? { customer: new ObjectId(transformFilterInObject?.customer) } : {},
           transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
             ? {
                 dateEntry: {
@@ -233,8 +259,14 @@ class OrderController {
                 },
               }
             : {},
-          { customer: customer._id },
+
+          deleted ? { deleted: this.deletedFilter(deletedIsString) } : {},
         ],
+      };
+      
+
+      const totalCount = await orderModel.countDocuments({
+       ...paramsOfFilter
       });
 
       // Consulta os pedidos do cliente com a paginação
@@ -243,33 +275,7 @@ class OrderController {
           {
             $match: {
               customer: customer._id,
-              $and: [
-                {
-                  $or: [
-                    { equipment: { $regex: searchFilter, $options: "i" } },
-                    { brand: { $regex: searchFilter, $options: "i" } },
-                    { model: { $regex: searchFilter, $options: "i" } },
-                    { defect: { $regex: searchFilter, $options: "i" } },
-                    { observation: { $regex: searchFilter, $options: "i" } },
-                    { id: numberId ? numberId : null },
-                  ],
-                },
-
-                //filter search
-                transformFilterInObject?.status ? { status: new ObjectId(transformFilterInObject?.status) } : {},
-                transformFilterInObject?.customer ? { customer: new ObjectId(transformFilterInObject?.customer) } : {},
-
-                transformFilterInObject?.dateFrom && transformFilterInObject?.dateTo
-                  ? {
-                      dateEntry: {
-                        $gte: new Date(transformFilterInObject?.dateFrom),
-                        $lte: new Date(transformFilterInObject?.dateTo),
-                      },
-                    }
-                  : {},
-
-                deleted ? { deleted: deleted } : {},
-              ],
+              ...paramsOfFilter
             },
           },
           /*from: <nome da Coleção onde vamos buscar os dados>,
