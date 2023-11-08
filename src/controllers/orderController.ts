@@ -266,6 +266,7 @@ class OrderController {
       
 
       const totalCount = await orderModel.countDocuments({
+        customer: customer._id,
        ...paramsOfFilter
       });
 
