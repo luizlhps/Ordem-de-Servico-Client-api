@@ -3,7 +3,6 @@ import { User } from "../models/User.model";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { IRefreshToken, RefreshTokenModel } from "../models/RefreshToken.model";
 import { generateTokenProvider } from "../providers/GenerateTokenProvider";
-import { ConstructionOutlined } from "@mui/icons-material";
 import { IUserInputs } from "./userController";
 
 interface GroupPermissions {

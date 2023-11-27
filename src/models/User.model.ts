@@ -1,4 +1,3 @@
-import { Numbers } from "@mui/icons-material";
 import { Schema, Document, model, ObjectId } from "mongoose";
 
 export interface IUser extends Document {
