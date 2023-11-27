@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "debug": "nodemon --exec \"node --inspect --require ts-node/register src/index.ts\"",
-    "start:dev": "nodemon  --exec npx ts-node src/index.ts"
+    "start:dev": "nodemon  --exec npx ts-node src/index.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
